@@ -26,8 +26,8 @@ jobs:
           echo "IMAGE_NAME=ghcr.io/${{ github.repository_owner }}/$CHART_NAME" >> $GITHUB_ENV
       - name: helm lint
         run: |
-          helm package $CHART_NAME --version $IMAGE_TAG
-      - name: helm package
+          helm lint 
+      - name: helm package $CHART_NAME
         run: |
           helm package $CHART_NAME --version $IMAGE_TAG
       - name: helm push
