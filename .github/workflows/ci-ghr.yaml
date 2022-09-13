@@ -26,11 +26,11 @@ jobs:
           helm lint $CHART_NAME/
       - name: helm package
         run: |
-          helm package $CHART_NAME-helm --version $IMAGE_TAG
+          helm package $CHART_NAME --version $IMAGE_TAG
       - name: helm push
         if: ${{ github.event_name == 'push' }}
         run: |
-          helm push $CHART_NAME-helm-$IMAGE_TAG.tgz oci://ghcr.io/${{ github.repository_owner }}
+          helm push $CHART_NAME-$IMAGE_TAG.tgz oci://ghcr.io/${{ github.repository_owner }}
   oras:
     runs-on: ubuntu-22.04
     steps:
