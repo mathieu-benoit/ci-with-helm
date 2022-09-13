@@ -24,9 +24,9 @@ jobs:
       - name: prepare environment variables
         run: |
           echo "IMAGE_NAME=ghcr.io/${{ github.repository_owner }}/$CHART_NAME" >> $GITHUB_ENV
-      - name: helm lint $CHART_NAME/
+      - name: helm lint
         run: |
-          helm lint 
+          helm lint $CHART_NAME/
       - name: helm package
         run: |
           helm package $CHART_NAME --version $IMAGE_TAG
