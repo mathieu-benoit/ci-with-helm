@@ -1,0 +1,6 @@
+namespace: test-chart
+helmGlobals:
+  chartHome: .
+helmCharts:
+- name: test-chart
+  releaseName: test-chart
