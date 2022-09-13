@@ -14,7 +14,7 @@ env:
   CHART_NAME: my-chart
   IMAGE_TAG: 0.1.0
 jobs:
-  job:
+  helm:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3.0.2
@@ -23,7 +23,7 @@ jobs:
           echo ${{ secrets.GITHUB_TOKEN }} | helm registry login ghcr.io -u $ --password-stdin
       - name: prepare environment variables
         run: |
-          echo "IMAGE_NAME=ghcr.io/${{ github.repository_owner }}/$CHART_NAME" >> $GITHUB_ENV
+          echo "IMAGE_NAME=ghcr.io/${{ github.repository_owner }}/$CHART_NAME-helm" >> $GITHUB_ENV
       - name: helm lint
         run: |
           helm lint $CHART_NAME/
@@ -34,4 +34,20 @@ jobs:
         if: ${{ github.event_name == 'push' }}
         run: |
           helm push $CHART_NAME-$IMAGE_TAG.tgz oci://$IMAGE_NAME
-
+  oras:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3.0.2
+      - name: sign-in to registry
+        run: |
+          echo ${{ secrets.GITHUB_TOKEN }} | oras registry login ghcr.io -u $ --password-stdin
+      - name: prepare environment variables
+        run: |
+          echo "IMAGE_NAME=ghcr.io/${{ github.repository_owner }}/$CHART_NAME-oras" >> $GITHUB_ENV
+      - name: tar
+        run: |
+          tar -cf $CHART_NAME.tar kustomization.yaml $CHART_NAME/
+      - name: helm push
+        if: ${{ github.event_name == 'push' }}
+        run: |
+          oras push $IMAGE_NAME:$IMAGE_TAG test-chart.tar
