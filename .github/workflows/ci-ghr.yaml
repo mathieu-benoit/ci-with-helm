@@ -12,6 +12,7 @@ on:
   pull_request:
 env:
   CHART_NAME: my-chart
+  IMAGE_TAG: 0.1.0
 jobs:
   job:
     runs-on: ubuntu-22.04
@@ -22,8 +23,6 @@ jobs:
           echo ${{ secrets.GITHUB_TOKEN }} | oras login ghcr.io -u $ --password-stdin
       - name: prepare environment variables
         run: |
-          shortSha=`echo ${GITHUB_SHA} | cut -c1-7`
-          echo "IMAGE_TAG=$shortSha" >> $GITHUB_ENV
           echo "IMAGE_NAME=ghcr.io/${{ github.repository_owner }}/$CHART_NAME" >> $GITHUB_ENV
       - name: package artifact
         run: |
