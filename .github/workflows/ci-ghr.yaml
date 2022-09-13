@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3.0.2
-      - name: sign-in to registry
+      - name: helm login
         run: |
           echo ${{ secrets.GITHUB_TOKEN }} | helm registry login ghcr.io -u $ --password-stdin
       - name: prepare environment variables
@@ -38,7 +38,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3.0.2
-      - name: sign-in to registry
+      - name: oras login
         run: |
           echo ${{ secrets.GITHUB_TOKEN }} | oras login ghcr.io -u $ --password-stdin
       - name: prepare environment variables
@@ -47,7 +47,7 @@ jobs:
       - name: tar
         run: |
           tar -cf $CHART_NAME.tar kustomization.yaml $CHART_NAME/
-      - name: helm push
+      - name: oras push
         if: ${{ github.event_name == 'push' }}
         run: |
-          oras push $IMAGE_NAME:$IMAGE_TAG test-chart.tar
+          oras push $IMAGE_NAME:$IMAGE_TAG $CHART_NAME.tar
