@@ -24,10 +24,13 @@ jobs:
       - name: prepare environment variables
         run: |
           echo "IMAGE_NAME=ghcr.io/${{ github.repository_owner }}/$CHART_NAME" >> $GITHUB_ENV
-      - name: package artifact
+      - name: helm lint
         run: |
           helm package $CHART_NAME --version $IMAGE_TAG
-      - name: push image in registry
+      - name: helm package
+        run: |
+          helm package $CHART_NAME --version $IMAGE_TAG
+      - name: helm push
         if: ${{ github.event_name == 'push' }}
         run: |
           helm push $CHART_NAME-$IMAGE_TAG.tgz oci://$IMAGE_NAME
