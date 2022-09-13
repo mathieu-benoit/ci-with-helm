@@ -1,0 +1,27 @@
+name: ci
+permissions:
+  packages: write
+  contents: read
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - 'README.md'
+      - '.github/dependabot.yml'
+  pull_request:
+jobs:
+  job:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3.0.2
+      - name: sign-in to registry
+        run: |
+          echo $GITHUB_PAT | oras login ghcr.io -u GITHUB_USERNAME --password-stdin
+      - name: build container
+        run: |
+          docker build --tag ${IMAGE_NAME} .
+      - name: push image in registry
+        if: ${{ github.event_name == 'push' }}
+        run: |
+          docker push ${IMAGE_NAME}
