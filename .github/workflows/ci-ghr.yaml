@@ -21,19 +21,16 @@ jobs:
       - name: helm login
         run: |
           echo ${{ secrets.GITHUB_TOKEN }} | helm registry login ghcr.io -u $ --password-stdin
-      - name: prepare environment variables
-        run: |
-          echo "IMAGE_NAME=ghcr.io/${{ github.repository_owner }}/$CHART_NAME-helm" >> $GITHUB_ENV
       - name: helm lint
         run: |
           helm lint $CHART_NAME/
       - name: helm package
         run: |
-          helm package $CHART_NAME --version $IMAGE_TAG
+          helm package $CHART_NAME-helm --version $IMAGE_TAG
       - name: helm push
         if: ${{ github.event_name == 'push' }}
         run: |
-          helm push $CHART_NAME-$IMAGE_TAG.tgz oci://$IMAGE_NAME
+          helm push $CHART_NAME-helm-$IMAGE_TAG.tgz oci://ghcr.io/${{ github.repository_owner }}
   oras:
     runs-on: ubuntu-22.04
     steps:
@@ -41,13 +38,10 @@ jobs:
       - name: oras login
         run: |
           echo ${{ secrets.GITHUB_TOKEN }} | oras login ghcr.io -u $ --password-stdin
-      - name: prepare environment variables
-        run: |
-          echo "IMAGE_NAME=ghcr.io/${{ github.repository_owner }}/$CHART_NAME-oras" >> $GITHUB_ENV
       - name: tar
         run: |
           tar -cf $CHART_NAME.tar kustomization.yaml $CHART_NAME/
       - name: oras push
         if: ${{ github.event_name == 'push' }}
         run: |
-          oras push $IMAGE_NAME:$IMAGE_TAG $CHART_NAME.tar
+          oras push ghcr.io/${{ github.repository_owner }}/$CHART_NAME-oras:$IMAGE_TAG $CHART_NAME.tar
