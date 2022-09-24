@@ -9,6 +9,7 @@ on:
     paths-ignore:
       - 'README.md'
       - '.github/dependabot.yml'
+      - '.github/workflows/ci-oras.yaml'
   pull_request:
 env:
   CHART_NAME: my-chart
