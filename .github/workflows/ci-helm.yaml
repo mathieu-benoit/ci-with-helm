@@ -19,12 +19,23 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3.0.2
-      - name: helm login
-        run: |
-          echo ${{ secrets.GITHUB_TOKEN }} | helm registry login ghcr.io -u $ --password-stdin
       - name: helm lint
         run: |
           helm lint $CHART_NAME/
+      - name: helm template
+        run: |
+          mkdir hydrated-manifests
+          helm template . --output-dir hydrated-manifests
+      - uses: google-github-actions/setup-gcloud@v0.5.0
+      - name: install kpt and nomos	
+        run: |
+          gcloud components install kpt nomos --quiet
+      - name: vet	
+        run: |
+          nomos vet --path hydrated-manifests/$CHART_NAME/templates --no-api-server-check --source-format unstructured
+      - name: helm login
+        run: |
+          echo ${{ secrets.GITHUB_TOKEN }} | helm registry login ghcr.io -u $ --password-stdin
       - name: helm package
         run: |
           helm package $CHART_NAME --version $IMAGE_TAG
