@@ -33,6 +33,10 @@ jobs:
       - name: vet	
         run: |
           nomos vet --path hydrated-manifests/$CHART_NAME/templates --no-api-server-check --source-format unstructured
+      - name: kubeval
+        if: ${{ always() }}
+        run: |
+          kpt fn eval hydrated-manifests/$CHART_NAME/templates --image gcr.io/kpt-fn/kubeval:v0.3 -- strict=true ignore_missing_schemas=true
       - name: helm login
         run: |
           echo ${{ secrets.GITHUB_TOKEN }} | helm registry login ghcr.io -u $ --password-stdin
