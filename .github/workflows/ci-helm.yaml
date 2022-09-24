@@ -21,11 +21,11 @@ jobs:
       - uses: actions/checkout@v3.0.2
       - name: helm lint
         run: |
-          helm lint $CHART_NAME/
+          helm lint $CHART_NAME
       - name: helm template
         run: |
           mkdir hydrated-manifests
-          helm template . --output-dir hydrated-manifests
+          helm template $CHART_NAME --output-dir hydrated-manifests
       - uses: google-github-actions/setup-gcloud@v0.5.0
       - name: install kpt and nomos	
         run: |
