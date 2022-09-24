@@ -1,0 +1,30 @@
+name: ci-oras
+permissions:
+  packages: write
+  contents: read
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - 'README.md'
+      - '.github/dependabot.yml'
+  pull_request:
+env:
+  CHART_NAME: my-chart
+  IMAGE_TAG: 0.1.0
+jobs:
+  job:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3.0.2
+      - name: oras login
+        run: |
+          echo ${{ secrets.GITHUB_TOKEN }} | oras login ghcr.io -u $ --password-stdin
+      - name: tar
+        run: |
+          tar -cf $CHART_NAME.tar kustomization.yaml $CHART_NAME/
+      - name: oras push
+        if: ${{ github.event_name == 'push' }}
+        run: |
+          oras push ghcr.io/${{ github.repository_owner }}/$CHART_NAME-oras:$IMAGE_TAG $CHART_NAME.tar
