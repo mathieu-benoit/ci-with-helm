@@ -46,12 +46,17 @@ jobs:
         if: ${{ failure() }}
         run: |
           cat tmp/results.yaml | yq -r '.items[]?.results' -o json | jq -r '.[]? | "❌ \(.message)"' | sed 's/<//g;s/>//g' >> $GITHUB_STEP_SUMMARY
-      - name: helm login
-        run: |
-          echo ${{ secrets.GITHUB_TOKEN }} | helm registry login ghcr.io -u $ --password-stdin
+      - name: trivy scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'config'
+          image-ref: $CHART_NAME
       - name: helm package
         run: |
           helm package $CHART_NAME --version $IMAGE_TAG
+      - name: helm login
+        run: |
+          echo ${{ secrets.GITHUB_TOKEN }} | helm registry login ghcr.io -u $ --password-stdin
       - name: helm push
         if: ${{ github.event_name == 'push' }}
         run: |
