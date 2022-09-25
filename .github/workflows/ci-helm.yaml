@@ -15,7 +15,7 @@ env:
   CHART_NAME: my-chart
   IMAGE_TAG: 0.1.0
 jobs:
-  job:
+  tests:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3.0.2
@@ -63,12 +63,17 @@ jobs:
           echo "🚫 trivy errors:" >> $GITHUB_STEP_SUMMARY
           cat trivy-errors.json | jq -r '.Results[]? | "❌ \(.Misconfigurations[]?.Message)"' >> $GITHUB_STEP_SUMMARY
       - uses: engineerd/setup-kind@v0.5.0
+        if: ${{ always() }}
       - name: helm install
         if: ${{ always() }}
         run: |
           kubectl create ns $CHART_NAME
           helm install $CHART_NAME -n $CHART_NAME
           kubectl wait --for=condition=available --timeout=1000s deployment/$CHART_NAME
+  package:
+    needs: tests
+    runs-on: ubuntu-22.04
+    steps:
       - name: helm package
         run: |
           helm package $CHART_NAME --version $IMAGE_TAG
