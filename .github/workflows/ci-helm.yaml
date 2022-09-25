@@ -52,6 +52,7 @@ jobs:
         with:
           scan-type: 'config'
           image-ref: $CHART_NAME
+          severity: 'CRITICAL,HIGH,MEDIUM'
       - name: helm package
         run: |
           helm package $CHART_NAME --version $IMAGE_TAG
