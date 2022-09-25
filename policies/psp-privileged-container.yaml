@@ -1,7 +1,7 @@
 apiVersion: constraints.gatekeeper.sh/v1beta1
-kind: K8sPSPAllowedUsers
+kind: K8sPSPPrivilegedContainer
 metadata:
-  name: psp-pods-allowed-user-ranges
+  name: psp-privileged-container
 spec:
   match:
     kinds:
@@ -9,9 +9,4 @@ spec:
         kinds: ["Pod"]
       - apiGroups: ["apps"]
         kinds: ["Deployment"]
-  parameters:
-    runAsUser:
-      rule: MustRunAsNonRoot
-      ranges:
-        - min: 1000
-          max: 1000
+    excludedNamespaces: ["kube-system"]
