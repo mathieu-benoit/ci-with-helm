@@ -59,7 +59,7 @@ jobs:
       - name: write trivy errors in summary
         if: ${{ failure() }}
         run: |
-          cat trivy-errors.json | jq -r '.Results[]? | "❌ \(.Misconfigurations.[].Message)"' >> $GITHUB_STEP_SUMMARY
+          cat trivy-errors.json | jq -r '.Results[]? | "❌ \(.Misconfigurations[]?.Message)"' >> $GITHUB_STEP_SUMMARY
       - name: helm package
         run: |
           helm package $CHART_NAME --version $IMAGE_TAG
