@@ -21,8 +21,13 @@ jobs:
     steps:
       - uses: actions/checkout@v3.0.2
       - name: helm lint
+        id: lint
         run: |
           helm lint $CHART_NAME --strict
+      - name: helm lint errors in summary
+        if: ${{ failure() && steps.lint.outcome == 'failure' }}
+        run: |
+          echo "🚫 helm lint errors." >> $GITHUB_STEP_SUMMARY
       - name: helm template
         run: |
           mkdir hydrated-manifests
@@ -98,7 +103,7 @@ jobs:
           kubectl create ns $CHART_NAME
           helm install $CHART_NAME ./$CHART_NAME -n $CHART_NAME --wait --timeout=600s
           kubectl wait --for=condition=available --timeout=600s deployment/$CHART_NAME -n $CHART_NAME
-      - name: helm errors in summary
+      - name: helm install errors in summary
         if: ${{ failure() && steps.deploy.outcome == 'failure' }}
         run: |
           echo "🚫 helm install errors." >> $GITHUB_STEP_SUMMARY
