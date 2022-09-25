@@ -37,6 +37,11 @@ jobs:
         if: ${{ always() }}
         run: |
           kpt fn eval hydrated-manifests/$CHART_NAME/templates --image gcr.io/kpt-fn/kubeval:v0.3 -- strict=true ignore_missing_schemas=true
+      - name: gatekeeper
+        if: ${{ always() }}
+        run: |
+          cp policies/* hydrated-manifests/$CHART_NAME/templates
+          kpt fn eval hydrated-manifests/$CHART_NAME/templates --results-dir tmp --image gcr.io/kpt-fn/gatekeeper:v0.2
       - name: helm login
         run: |
           echo ${{ secrets.GITHUB_TOKEN }} | helm registry login ghcr.io -u $ --password-stdin
