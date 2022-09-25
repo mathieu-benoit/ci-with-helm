@@ -101,7 +101,7 @@ jobs:
         if: ${{ always() }}
         run: |
           kubectl create ns $CHART_NAME
-          helm install $CHART_NAME ./$CHART_NAME -n $CHART_NAME --wait --timeout=600s
+          helm upgrade --install $CHART_NAME ./$CHART_NAME -n $CHART_NAME --wait --timeout=600s
           kubectl wait --for=condition=available --timeout=600s deployment/$CHART_NAME -n $CHART_NAME
       - name: helm install errors in summary
         if: ${{ failure() && steps.deploy.outcome == 'failure' }}
