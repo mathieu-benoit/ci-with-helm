@@ -10,6 +10,7 @@ on:
       - 'README.md'
       - '.github/dependabot.yml'
       - '.github/workflows/ci-oras.yaml'
+      - 'kustomization.yaml'
   pull_request:
 env:
   CHART_NAME: my-chart
@@ -37,7 +38,7 @@ jobs:
         if: ${{ failure() }}
         run: |
           echo "🚫 nomos vet errors:" >> $GITHUB_STEP_SUMMARY
-          nomos vet --path hydrated-manifests/$CHART_NAME/templates --no-api-server-check --source-format unstructured --namespace $CHART_NAME >> $GITHUB_STEP_SUMMARY
+          nomos vet --path hydrated-manifests/$CHART_NAME/templates --no-api-server-check --source-format unstructured --namespace $CHART_NAME 2> /dev/null >> $GITHUB_STEP_SUMMARY
       - name: kubeval
         if: ${{ always() }}
         run: |
@@ -90,7 +91,7 @@ jobs:
         if: ${{ failure() }}
         run: |
           echo "🚫 helm install errors." >> $GITHUB_STEP_SUMMARY
-  package:
+  artifact:
     needs: tests
     if: ${{ github.event_name == 'push' }}
     runs-on: ubuntu-22.04
