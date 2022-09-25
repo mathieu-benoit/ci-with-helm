@@ -45,6 +45,7 @@ jobs:
       - name: write gatkeeper errors in summary
         if: ${{ failure() }}
         run: |
+          echo "🚫 gatekeeper errors" >> $GITHUB_STEP_SUMMARY
           cat tmp/results.yaml | yq -r '.items[]?.results' -o json | jq -r '.[]? | "❌ \(.message)"' | sed 's/<//g;s/>//g' >> $GITHUB_STEP_SUMMARY
       - name: trivy scan
         if: ${{ always() }}
@@ -59,6 +60,7 @@ jobs:
       - name: write trivy errors in summary
         if: ${{ failure() }}
         run: |
+          echo "🚫 trivy errors" >> $GITHUB_STEP_SUMMARY
           cat trivy-errors.json | jq -r '.Results[]? | "❌ \(.Misconfigurations[]?.Message)"' >> $GITHUB_STEP_SUMMARY
       - name: helm package
         run: |
