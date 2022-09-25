@@ -64,6 +64,7 @@ jobs:
           cat trivy-errors.json | jq -r '.Results[]? | "❌ \(.Misconfigurations[]?.Message)"' >> $GITHUB_STEP_SUMMARY
       - uses: engineerd/setup-kind@v0.5.0
       - name: helm install
+        if: ${{ always() }}
         run: |
           kubectl create ns $CHART_NAME
           helm install $CHART_NAME -n $CHART_NAME
