@@ -52,6 +52,7 @@ jobs:
         with:
           scan-type: 'config'
           image-ref: $CHART_NAME
+          format: json
           severity: 'CRITICAL,HIGH,MEDIUM'
       - name: helm package
         run: |
