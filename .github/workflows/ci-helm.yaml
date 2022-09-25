@@ -42,18 +42,24 @@ jobs:
         run: |
           cp policies/* hydrated-manifests/$CHART_NAME/templates
           kpt fn eval hydrated-manifests/$CHART_NAME/templates --results-dir tmp --image gcr.io/kpt-fn/gatekeeper:v0.2
-      - name: write errors in summary
+      - name: write gatkeeper errors in summary
         if: ${{ failure() }}
         run: |
-          cat tmp/results.yaml | yq -r '.items[]?.results' -o json | jq -r '.[]? | "❌ \(.message)"' | sed 's/<//g;s/>//g' >> $GITHUB_STEP_SUMMARY
+          cat tmp/results.yaml | jq -r '.Results[]? | "❌ \(.Misconfigurations.[].Message)"' >> $GITHUB_STEP_SUMMARY
       - name: trivy scan
         if: ${{ always() }}
         uses: aquasecurity/trivy-action@master
         with:
           scan-type: 'config'
           image-ref: $CHART_NAME
+          exit-code: 1
           format: json
           severity: 'CRITICAL,HIGH,MEDIUM'
+          output: trivy-errors.json
+      - name: write gatkeeper errors in summary
+        if: ${{ failure() }}
+        run: |
+          cat trivy-errors.json | yq -r '.items[]?.results' -o json | jq -r '.[]? | "❌ \(.message)"' | sed 's/<//g;s/>//g' >> $GITHUB_STEP_SUMMARY
       - name: helm package
         run: |
           helm package $CHART_NAME --version $IMAGE_TAG
