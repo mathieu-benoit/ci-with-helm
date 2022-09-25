@@ -47,6 +47,7 @@ jobs:
         run: |
           cat tmp/results.yaml | yq -r '.items[]?.results' -o json | jq -r '.[]? | "❌ \(.message)"' | sed 's/<//g;s/>//g' >> $GITHUB_STEP_SUMMARY
       - name: trivy scan
+        if: ${{ always() }}
         uses: aquasecurity/trivy-action@master
         with:
           scan-type: 'config'
