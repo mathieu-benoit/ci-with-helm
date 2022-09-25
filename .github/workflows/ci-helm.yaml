@@ -72,7 +72,7 @@ jobs:
         run: |
           kubectl create ns $CHART_NAME
           helm install $CHART_NAME ./$CHART_NAME -n $CHART_NAME --wait --timeout=600s
-          kubectl wait --for=condition=available --timeout=600s deployment/$CHART_NAME
+          kubectl wait --for=condition=available --timeout=600s deployment/$CHART_NAME -n $CHART_NAME
   package:
     needs: tests
     runs-on: ubuntu-22.04
