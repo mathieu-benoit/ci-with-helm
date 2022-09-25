@@ -62,8 +62,10 @@ jobs:
         run: |
           echo "🚫 trivy errors:" >> $GITHUB_STEP_SUMMARY
           cat trivy-errors.json | jq -r '.Results[]? | "❌ \(.Misconfigurations[]?.Message)"' >> $GITHUB_STEP_SUMMARY
-      - uses: engineerd/setup-kind@v0.5.0
+      - name: install kind 
         if: ${{ always() }}
+        run: |
+          kind version
       - name: helm install
         if: ${{ always() }}
         run: |
