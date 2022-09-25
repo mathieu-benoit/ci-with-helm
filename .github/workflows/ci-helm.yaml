@@ -62,6 +62,12 @@ jobs:
         run: |
           echo "🚫 trivy errors:" >> $GITHUB_STEP_SUMMARY
           cat trivy-errors.json | jq -r '.Results[]? | "❌ \(.Misconfigurations[]?.Message)"' >> $GITHUB_STEP_SUMMARY
+      - uses: engineerd/setup-kind@v0.5.0
+      - name: helm install
+        run: |
+          kubectl create ns $CHART_NAME
+          helm install $CHART_NAME -n $CHART_NAME
+          kubectl wait --for=condition=available --timeout=1000s deployment/$CHART_NAME
       - name: helm package
         run: |
           helm package $CHART_NAME --version $IMAGE_TAG
