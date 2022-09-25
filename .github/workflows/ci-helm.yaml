@@ -38,7 +38,7 @@ jobs:
         if: ${{ failure() }}
         run: |
           echo "🚫 nomos vet errors:" >> $GITHUB_STEP_SUMMARY
-          nomos vet --path hydrated-manifests/$CHART_NAME/templates --no-api-server-check --source-format unstructured --namespace $CHART_NAME 2> /dev/null >> $GITHUB_STEP_SUMMARY
+          $(nomos vet --path hydrated-manifests/$CHART_NAME/templates --no-api-server-check --source-format unstructured --namespace $CHART_NAME) >/dev/null 2>&1 >> $GITHUB_STEP_SUMMARY
       - name: kubeval
         if: ${{ always() }}
         run: |
