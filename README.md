@@ -7,7 +7,6 @@
 │   ├── charts
 │   ├── Chart.yaml
 │   ├── templates
-│   │   ├── deployment2.yaml
 │   │   ├── deployment.yaml
 │   │   ├── _helpers.tpl
 │   │   ├── hpa.yaml
@@ -19,9 +18,7 @@
 │   └── values.yaml
 ├── policies
     ├── k8spspallowedusers.yaml
-    ├── k8spspreadonlyrootfilesystem.yaml
     ├── psp-pods-allowed-user-ranges.yaml
-    └── psp-readonlyrootfilesystem.yaml
 ```
 
 With Helm chart:
