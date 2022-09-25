@@ -21,7 +21,7 @@ jobs:
       - uses: actions/checkout@v3.0.2
       - name: helm lint
         run: |
-          helm lint $CHART_NAME
+          helm lint $CHART_NAME --strict
       - name: helm template
         run: |
           mkdir hydrated-manifests
@@ -30,23 +30,35 @@ jobs:
       - name: install kpt and nomos	
         run: |
           gcloud components install kpt nomos --quiet
-      - name: vet	
+      - name: nomos vet	
         run: |
-          nomos vet --path hydrated-manifests/$CHART_NAME/templates --no-api-server-check --source-format unstructured
+          nomos vet --path hydrated-manifests/$CHART_NAME/templates --no-api-server-check --source-format unstructured --namespace $CHART_NAME
+      - name: nomos vet errors in summary
+        if: ${{ failure() }}
+        run: |
+          echo "🚫 nomos vet errors:" >> $GITHUB_STEP_SUMMARY
+          nomos vet --path hydrated-manifests/$CHART_NAME/templates --no-api-server-check --source-format unstructured --namespace $CHART_NAME >> $GITHUB_STEP_SUMMARY
       - name: kubeval
         if: ${{ always() }}
         run: |
-          kpt fn eval hydrated-manifests/$CHART_NAME/templates --image gcr.io/kpt-fn/kubeval:v0.3 -- strict=true ignore_missing_schemas=true
+          kpt fn eval hydrated-manifests/$CHART_NAME/templates --results-dir tmp --image gcr.io/kpt-fn/kubeval:v0.3 -- strict=true ignore_missing_schemas=true
+      - name: kubeval errors in summary
+        if: ${{ failure() }}
+        run: |
+          echo "🚫 kubeval errors:" >> $GITHUB_STEP_SUMMARY
+          cat tmp/results.yaml | yq -r '.items[]?.results' -o json | jq -r '.[]? | "❌ \(.message)"' | sed 's/<//g;s/>//g' >> $GITHUB_STEP_SUMMARY
+          rm tmp/results.yaml
       - name: gatekeeper
         if: ${{ always() }}
         run: |
           cp policies/* hydrated-manifests/$CHART_NAME/templates
           kpt fn eval hydrated-manifests/$CHART_NAME/templates --results-dir tmp --image gcr.io/kpt-fn/gatekeeper:v0.2
-      - name: write gatkeeper errors in summary
+      - name: gatkeeper errors in summary
         if: ${{ failure() }}
         run: |
           echo "🚫 gatekeeper errors:" >> $GITHUB_STEP_SUMMARY
           cat tmp/results.yaml | yq -r '.items[]?.results' -o json | jq -r '.[]? | "❌ \(.message)"' | sed 's/<//g;s/>//g' >> $GITHUB_STEP_SUMMARY
+          rm tmp/results.yaml
       - name: trivy scan
         if: ${{ always() }}
         uses: aquasecurity/trivy-action@master
@@ -57,12 +69,13 @@ jobs:
           format: json
           severity: 'CRITICAL,HIGH,MEDIUM'
           output: trivy-errors.json
-      - name: write trivy errors in summary
+      - name: trivy errors in summary
         if: ${{ failure() }}
         run: |
           echo "🚫 trivy errors:" >> $GITHUB_STEP_SUMMARY
           cat trivy-errors.json | jq -r '.Results[]? | "❌ \(.Misconfigurations[]?.Message)"' >> $GITHUB_STEP_SUMMARY
-      - name: create kind  cluster
+          rm trivy-errors.json
+      - name: create kind cluster
         if: ${{ always() }}
         run: |
           kind version
@@ -73,8 +86,13 @@ jobs:
           kubectl create ns $CHART_NAME
           helm install $CHART_NAME ./$CHART_NAME -n $CHART_NAME --wait --timeout=600s
           kubectl wait --for=condition=available --timeout=600s deployment/$CHART_NAME -n $CHART_NAME
+      - name: helm errors in summary
+        if: ${{ failure() }}
+        run: |
+          echo "🚫 helm install errors." >> $GITHUB_STEP_SUMMARY
   package:
     needs: tests
+    if: ${{ github.event_name == 'push' }}
     runs-on: ubuntu-22.04
     steps:
       - name: helm package
@@ -84,6 +102,5 @@ jobs:
         run: |
           echo ${{ secrets.GITHUB_TOKEN }} | helm registry login ghcr.io -u $ --password-stdin
       - name: helm push
-        if: ${{ github.event_name == 'push' }}
         run: |
           helm push $CHART_NAME-$IMAGE_TAG.tgz oci://ghcr.io/${{ github.repository_owner }}
