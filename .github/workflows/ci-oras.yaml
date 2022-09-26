@@ -102,17 +102,17 @@ jobs:
         run: |
           kind version
           kind create cluster
-      - name: helm install
+      - name: kubectl apply
         id: deploy
         if: ${{ always() }}
         run: |
           kubectl create ns $CHART_NAME
-          helm upgrade --install $CHART_NAME ./$CHART_NAME -n $CHART_NAME --wait --timeout=60s
+          kubectl apply -f hydrated-manifests/hydrated-manifests.yaml -n $CHART_NAME
           kubectl wait --for=condition=available --timeout=60s deployment/$CHART_NAME -n $CHART_NAME
-      - name: helm install errors in summary
+      - name: kubectl apply errors in summary
         if: ${{ failure() && steps.deploy.outcome == 'failure' }}
         run: |
-          echo "🚫 helm install errors:" >> $GITHUB_STEP_SUMMARY
+          echo "🚫 kubectl apply errors:" >> $GITHUB_STEP_SUMMARY
           echo "`kubectl get events`:" >> $GITHUB_STEP_SUMMARY
           kubectl get events -n $CHART_NAME >> $GITHUB_STEP_SUMMARY
           echo "`kubectl logs`:" >> $GITHUB_STEP_SUMMARY
