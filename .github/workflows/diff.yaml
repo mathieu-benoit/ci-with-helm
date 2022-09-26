@@ -26,14 +26,14 @@ jobs:
           mkdir base-ref-resources
           kpt pkg get https://github.com/${{ github.repository }}.git/@${{ github.base_ref }} base-ref-resources
           rm base-ref-resources/ci-with-helm/Kptfile
-      - name: kustomize build current branch
+      - name: helm template current branch
         run: |
           mkdir hydrated-manifests
-          kustomize build . --enable-helm -o hydrated-manifests/hydrated-manifests.yaml
-      - name: kustomize build base ref
+          helm template $CHART_NAME --output-dir hydrated-manifests
+      - name: helm template base ref
         run: |
           mkdir base-ref-resources/hydrated-manifests
-          kustomize build base-ref-resources/ci-with-helm/ --enable-helm -o base-ref-resources/hydrated-manifests/hydrated-manifests.yaml
+          helm template base-ref-resources/ci-with-helm/$CHART_NAME --output-dir hydrated-manifests
       - name: diff
         run: |
-          diff hydrated-manifests/hydrated-manifests.yaml base-ref-resources/hydrated-manifests/hydrated-manifests.yaml | sed 's/</+/g;s/>/-/g' >> $GITHUB_STEP_SUMMARY
+          diff hydrated-manifests/$CHART_NAME/templates base-ref-resources/hydrated-manifests/$CHART_NAME/templates | sed 's/</++/g;s/>/--/g' >> $GITHUB_STEP_SUMMARY
