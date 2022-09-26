@@ -21,11 +21,11 @@ jobs:
       - name: install kpt
         run: |
           gcloud components install kpt --quiet
-      - name: kpt get main
+      - name: kpt get base ref
         run: |
-          mkdir main-resources
-          kpt pkg get https://github.com/mathieu-benoit/ci-with-helm.git/@main main-resources
-          rm main-resources/ci-with-helm/Kptfile
+          mkdir base-ref-resources
+          kpt pkg get https://github.com/${{ github.repository }}.git/@${{ github.base_ref }} base-ref-resources
+          rm base-ref-resources/ci-with-helm/Kptfile
       - name: kustomize build current branch
         run: |
           mkdir hydrated-manifests
@@ -33,7 +33,7 @@ jobs:
       - name: kustomize build main branch
         run: |
           mkdir main-resources/hydrated-manifests
-          kustomize build main-resources/ci-with-helm/ --enable-helm -o main-resources/hydrated-manifests/hydrated-manifests.yaml
+          kustomize build base-ref-resources/ci-with-helm/ --enable-helm -o base-ref-resources/hydrated-manifests/hydrated-manifests.yaml
       - name: diff
         run: |
-          diff hydrated-manifests/hydrated-manifests.yaml main-resources/hydrated-manifests/hydrated-manifests.yaml &>> $GITHUB_STEP_SUMMARY
+          diff hydrated-manifests/hydrated-manifests.yaml base-ref-resources/hydrated-manifests/hydrated-manifests.yaml | sed 's/</+/g;s/>/-/g' >> $GITHUB_STEP_SUMMARY
