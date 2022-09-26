@@ -1,0 +1,39 @@
+name: diff
+permissions:
+  contents: read
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - 'README.md'
+      - '.github/dependabot.yml'
+      - '.github/workflows/ci-helm.yaml'
+  pull_request:
+env:
+  CHART_NAME: my-chart
+jobs:
+  tests:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3.0.2
+      - uses: google-github-actions/setup-gcloud@v0.5.0
+      - name: install kpt
+        run: |
+          gcloud components install kpt --quiet
+      - name: kpt get main
+        run: |
+          mkdir main-resources
+          kpt pkg get https://github.com/mathieu-benoit/ci-with-helm.git/@main main-resources
+          rm main-resources/ci-with-helm/Kptfile
+      - name: kustomize build current branch
+        run: |
+          mkdir hydrated-manifests
+          kustomize build . --enable-helm -o hydrated-manifests/hydrated-manifests.yaml
+      - name: kustomize build current branch
+        run: |
+          mkdir main-resources/hydrated-manifests
+          kustomize build . --enable-helm -o main-resources/hydrated-manifests/hydrated-manifests.yaml
+      - name: diff
+        run: |
+          diff hydrated-manifests/hydrated-manifests.yaml main-resources/hydrated-manifests/hydrated-manifests.yaml >> $GITHUB_STEP_SUMMARY
