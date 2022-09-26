@@ -115,6 +115,31 @@ jobs:
           kubectl get events -n $CHART_NAME >> $GITHUB_STEP_SUMMARY
           echo "kubectl logs:" >> $GITHUB_STEP_SUMMARY
           kubectl logs -l app.kubernetes.io/name=$CHART_NAME -n $CHART_NAME >> $GITHUB_STEP_SUMMARY
+  diff:
+    if: ${{ github.event_name == 'pull_request' }}
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3.0.2
+      - uses: google-github-actions/setup-gcloud@v0.5.0
+      - name: install kpt
+        run: |
+          gcloud components install kpt --quiet
+      - name: kpt get base ref
+        run: |
+          mkdir base-ref-resources
+          kpt pkg get https://github.com/${{ github.repository }}.git/@${{ github.base_ref }} base-ref-resources
+          rm base-ref-resources/ci-with-helm/Kptfile
+      - name: kustomize build current branch
+        run: |
+          mkdir hydrated-manifests
+          kustomize build . --enable-helm -o hydrated-manifests/hydrated-manifests.yaml
+      - name: kustomize build base ref
+        run: |
+          mkdir base-ref-resources/hydrated-manifests
+          kustomize build base-ref-resources/ci-with-helm/ --enable-helm -o base-ref-resources/hydrated-manifests/hydrated-manifests.yaml
+      - name: diff
+        run: |
+          diff hydrated-manifests/hydrated-manifests.yaml base-ref-resources/hydrated-manifests/hydrated-manifests.yaml | sed 's/</++/g;s/>/--/g' >> $GITHUB_STEP_SUMMARY
   artifact:
     needs: tests
     if: ${{ github.event_name == 'push' }}
