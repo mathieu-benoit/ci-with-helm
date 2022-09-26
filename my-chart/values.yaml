@@ -37,7 +37,7 @@ securityContext:
     drop:
     - ALL
   # readOnlyRootFilesystem: true
-  privileged: false
+  # privileged: false
   runAsNonRoot: true
   runAsUser: 1000
 
