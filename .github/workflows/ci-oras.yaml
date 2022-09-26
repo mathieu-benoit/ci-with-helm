@@ -20,9 +20,15 @@ jobs:
     steps:
       - uses: actions/checkout@v3.0.2
       - name: kustomize build
+        id: kustomize
         run: |
           mkdir hydrated-manifests
           kustomize build . > hydrated-manifests.yaml
+      - name: kustomize build errors in summary
+        if: ${{ failure() && steps.kustomize.outcome == 'failure' }}
+        run: |
+          echo "🚫 kustomize build errors:" >> $GITHUB_STEP_SUMMARY
+          cat hydrated-manifests.yaml >> $GITHUB_STEP_SUMMARY
       - uses: google-github-actions/setup-gcloud@v0.5.0
       - name: install kpt and nomos	
         run: |
