@@ -5,7 +5,7 @@
 replicaCount: 1
 
 image:
-  repository: nginxinc/nginx-unprivileged
+  repository: nginx
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
   tag: ""
@@ -25,21 +25,21 @@ serviceAccount:
 
 podAnnotations: {}
 
-podSecurityContext:
-  fsGroup: 2000
-  runAsGroup: 2000
-  runAsNonRoot: true
-  runAsUser: 2000
+podSecurityContext: {}
+  # fsGroup: 2000
+  # runAsGroup: 2000
+  # runAsNonRoot: true
+  # runAsUser: 2000
 
 securityContext:
-  allowPrivilegeEscalation: false
-  capabilities:
-    drop:
-    - ALL
+  #allowPrivilegeEscalation: false
+  # capabilities:
+  #   drop:
+  #   - ALL
   # readOnlyRootFilesystem: true
-  privileged: false
-  runAsNonRoot: true
-  runAsUser: 1000
+  # privileged: false
+  # runAsNonRoot: true
+  # runAsUser: 1000
 
 service:
   type: ClusterIP
