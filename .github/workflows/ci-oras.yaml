@@ -23,13 +23,13 @@ jobs:
         id: kustomize
         run: |
           mkdir hydrated-manifests
-          kustomize build . > hydrated-manifests/hydrated-manifests.yaml
+          kustomize build . --enable-helm -o hydrated-manifests/hydrated-manifests.yaml
       - name: kustomize build errors in summary
         if: ${{ failure() && steps.kustomize.outcome == 'failure' }}
         run: |
           echo "🚫 kustomize build errors:" >> $GITHUB_STEP_SUMMARY
           set +e
-          kustomize build . 2>&1 &>> $GITHUB_STEP_SUMMARY
+          kustomize build . --enable-helm 2>&1 &>> $GITHUB_STEP_SUMMARY
           set -e
       - uses: google-github-actions/setup-gcloud@v0.5.0
         if: ${{ always() }}
