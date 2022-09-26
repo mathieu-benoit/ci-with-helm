@@ -112,7 +112,9 @@ jobs:
         run: |
           echo "🚫 helm install errors:" >> $GITHUB_STEP_SUMMARY
           echo "kubectl get events:" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
           kubectl get events -n $CHART_NAME >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
           echo "kubectl logs:" >> $GITHUB_STEP_SUMMARY
           kubectl logs -l app.kubernetes.io/name=$CHART_NAME -n $CHART_NAME >> $GITHUB_STEP_SUMMARY
   diff:
@@ -139,7 +141,9 @@ jobs:
           helm template base-ref-resources/ci-with-helm/$CHART_NAME --output-dir base-ref-resources/hydrated-manifests
       - name: diff
         run: |
+          echo '```' >> $GITHUB_STEP_SUMMARY
           diff hydrated-manifests/$CHART_NAME/templates base-ref-resources/hydrated-manifests/$CHART_NAME/templates | sed 's/</++/g;s/>/--/g' >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
   artifact:
     needs: tests
     if: ${{ github.event_name == 'push' }}
