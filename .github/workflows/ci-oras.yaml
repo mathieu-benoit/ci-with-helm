@@ -27,7 +27,7 @@ jobs:
         if: ${{ failure() && steps.kustomize.outcome == 'failure' }}
         run: |
           echo "🚫 kustomize build errors:" >> $GITHUB_STEP_SUMMARY
-          kustomize build . 2>&1 >> $GITHUB_STEP_SUMMARY
+          kustomize build . 2>&1 &>> $GITHUB_STEP_SUMMARY
       - uses: google-github-actions/setup-gcloud@v0.5.0
       - name: install kpt and nomos	
         run: |
@@ -107,7 +107,9 @@ jobs:
           kubectl get events -n $CHART_NAME >> $GITHUB_STEP_SUMMARY
           echo "❌ kubectl logs:" >> $GITHUB_STEP_SUMMARY
           kubectl logs -l app.kubernetes.io/name=$CHART_NAME -n $CHART_NAME >> $GITHUB_STEP_SUMMARY
-  job:
+  artifact:
+    needs: tests
+    if: ${{ github.event_name == 'push' }}
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3.0.2
