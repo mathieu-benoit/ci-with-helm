@@ -111,10 +111,14 @@ jobs:
         if: ${{ failure() && steps.deploy.outcome == 'failure' }}
         run: |
           echo "🚫 helm install errors:" >> $GITHUB_STEP_SUMMARY
-          echo "❌ kubectl get events:" >> $GITHUB_STEP_SUMMARY
+          echo "`kubectl get events`:" >> $GITHUB_STEP_SUMMARY
+          echo "```" >> $GITHUB_STEP_SUMMARY
           kubectl get events -n $CHART_NAME >> $GITHUB_STEP_SUMMARY
-          echo "❌ kubectl logs:" >> $GITHUB_STEP_SUMMARY
+          echo "```" >> $GITHUB_STEP_SUMMARY
+          echo "`kubectl logs`:" >> $GITHUB_STEP_SUMMARY
+          echo "```" >> $GITHUB_STEP_SUMMARY
           kubectl logs -l app.kubernetes.io/name=$CHART_NAME -n $CHART_NAME >> $GITHUB_STEP_SUMMARY
+          echo "```" >> $GITHUB_STEP_SUMMARY
   artifact:
     needs: tests
     if: ${{ github.event_name == 'push' }}
