@@ -21,7 +21,7 @@
     ├── psp-pods-allowed-user-ranges.yaml
 ```
 
-With Helm chart:
+## With Helm chart
 
 ```mermaid
 flowchart TB
@@ -41,7 +41,7 @@ flowchart TB
     tests --> artifact
 ```
 
-With Kustomize:
+## With Kustomize
 
 ```mermaid
 flowchart TB
