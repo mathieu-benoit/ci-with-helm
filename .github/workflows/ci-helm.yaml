@@ -136,7 +136,7 @@ jobs:
       - name: helm template base ref
         run: |
           mkdir base-ref-resources/hydrated-manifests
-          helm template base-ref-resources/ci-with-helm/$CHART_NAME --output-dir hydrated-manifests
+          helm template base-ref-resources/ci-with-helm/$CHART_NAME --output-dir base-ref-resources/hydrated-manifests
       - name: diff
         run: |
           diff hydrated-manifests/$CHART_NAME/templates base-ref-resources/hydrated-manifests/$CHART_NAME/templates | sed 's/</++/g;s/>/--/g' >> $GITHUB_STEP_SUMMARY
