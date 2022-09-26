@@ -30,9 +30,9 @@ jobs:
         run: |
           mkdir hydrated-manifests
           kustomize build . --enable-helm -o hydrated-manifests/hydrated-manifests.yaml
-      - name: kustomize build main branch
+      - name: kustomize build base ref
         run: |
-          mkdir main-resources/hydrated-manifests
+          mkdir base-ref-resources/hydrated-manifests
           kustomize build base-ref-resources/ci-with-helm/ --enable-helm -o base-ref-resources/hydrated-manifests/hydrated-manifests.yaml
       - name: diff
         run: |
