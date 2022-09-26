@@ -1,6 +1,6 @@
-namespace: test-chart
+namespace: my-chart
 helmGlobals:
   chartHome: .
 helmCharts:
-- name: test-chart
-  releaseName: test-chart
+- name: my-chart
+  releaseName: my-chart
