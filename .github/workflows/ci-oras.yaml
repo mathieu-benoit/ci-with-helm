@@ -11,6 +11,10 @@ on:
       - '.github/dependabot.yml'
       - '.github/workflows/ci-helm.yaml'
   pull_request:
+    paths-ignore:
+      - 'README.md'
+      - '.github/dependabot.yml'
+      - '.github/workflows/ci-helm.yaml'
 env:
   CHART_NAME: my-chart
   IMAGE_TAG: 0.1.0
