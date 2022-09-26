@@ -29,14 +29,18 @@ jobs:
         run: |
           echo "🚫 helm lint errors." >> $GITHUB_STEP_SUMMARY
       - name: helm template
+        if: ${{ always() }}
         run: |
           mkdir hydrated-manifests
           helm template $CHART_NAME --output-dir hydrated-manifests
       - uses: google-github-actions/setup-gcloud@v0.5.0
+        if: ${{ always() }}
       - name: install kpt and nomos	
+        if: ${{ always() }}
         run: |
           gcloud components install kpt nomos --quiet
-      - name: nomos vet	
+      - name: nomos vet
+        if: ${{ always() }}
         id: vet
         run: |
           nomos vet --path hydrated-manifests/$CHART_NAME/templates --no-api-server-check --source-format unstructured --namespace $CHART_NAME

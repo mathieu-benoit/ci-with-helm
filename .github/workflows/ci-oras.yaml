@@ -29,10 +29,13 @@ jobs:
           echo "🚫 kustomize build errors:" >> $GITHUB_STEP_SUMMARY
           kustomize build . 2>&1 &>> $GITHUB_STEP_SUMMARY
       - uses: google-github-actions/setup-gcloud@v0.5.0
+        if: ${{ always() }}
       - name: install kpt and nomos	
+        if: ${{ always() }}
         run: |
           gcloud components install kpt nomos --quiet
       - name: nomos vet	
+        if: ${{ always() }}
         id: vet
         run: |
           nomos vet --path hydrated-manifests.yaml --no-api-server-check --source-format unstructured --namespace $CHART_NAME
