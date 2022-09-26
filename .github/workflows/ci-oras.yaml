@@ -27,7 +27,9 @@ jobs:
         if: ${{ failure() && steps.kustomize.outcome == 'failure' }}
         run: |
           echo "🚫 kustomize build errors:" >> $GITHUB_STEP_SUMMARY
+          set +e
           kustomize build . 2>&1 &>> $GITHUB_STEP_SUMMARY
+          set -e
       - uses: google-github-actions/setup-gcloud@v0.5.0
         if: ${{ always() }}
       - name: install kpt and nomos	
