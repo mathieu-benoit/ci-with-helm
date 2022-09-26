@@ -22,7 +22,8 @@ jobs:
       - name: kustomize build
         id: kustomize
         run: |
-          kustomize build . > hydrated-manifests.yaml
+          mkdir hydrated-manifests
+          kustomize build . > hydrated-manifests/hydrated-manifests.yaml
       - name: kustomize build errors in summary
         if: ${{ failure() && steps.kustomize.outcome == 'failure' }}
         run: |
@@ -40,17 +41,19 @@ jobs:
         if: ${{ always() }}
         id: vet
         run: |
-          nomos vet --path hydrated-manifests.yaml --no-api-server-check --source-format unstructured --namespace $CHART_NAME
+          nomos vet --path hydrated-manifests --no-api-server-check --source-format unstructured --namespace $CHART_NAME
       - name: nomos vet errors in summary
         if: ${{ failure() && steps.vet.outcome == 'failure' }}
         run: |
           echo "🚫 nomos vet errors:" >> $GITHUB_STEP_SUMMARY
-          nomos vet --path hydrated-manifests/$CHART_NAME/templates --no-api-server-check --source-format unstructured --namespace $CHART_NAME 2>&1 | grep KNV &>> $GITHUB_STEP_SUMMARY
+          set +e
+          nomos vet --path hydrated-manifests --no-api-server-check --source-format unstructured --namespace $CHART_NAME 2>&1 | grep KNV &>> $GITHUB_STEP_SUMMARY
+          set -e
       - name: kubeval
         id: kubeval
         if: ${{ always() }}
         run: |
-          kpt fn eval hydrated-manifests/$CHART_NAME/templates --results-dir tmp --image gcr.io/kpt-fn/kubeval:v0.3 -- strict=true ignore_missing_schemas=true
+          kpt fn eval hydrated-manifests --results-dir tmp --image gcr.io/kpt-fn/kubeval:v0.3 -- strict=true ignore_missing_schemas=true
       - name: kubeval errors in summary
         if: ${{ failure() && steps.kubeval.outcome == 'failure' }}
         run: |
@@ -63,8 +66,8 @@ jobs:
         id: gatekeeper
         if: ${{ always() }}
         run: |
-          cp policies/* hydrated-manifests/$CHART_NAME/templates
-          kpt fn eval hydrated-manifests/$CHART_NAME/templates --results-dir tmp --image gcr.io/kpt-fn/gatekeeper:v0.2
+          cp policies/* hydrated-manifests
+          kpt fn eval hydrated-manifests --results-dir tmp --image gcr.io/kpt-fn/gatekeeper:v0.2
       - name: gatkeeper errors in summary
         if: ${{ failure() && steps.gatekeeper.outcome == 'failure' }}
         run: |
