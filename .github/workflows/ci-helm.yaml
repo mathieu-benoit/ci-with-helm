@@ -62,7 +62,7 @@ jobs:
           if [ -f tmp/results.yaml ]; then
             echo "❌ kubeval errors:" >> $GITHUB_STEP_SUMMARY
             echo '```' >> $GITHUB_STEP_SUMMARY
-            cat tmp/results.yaml | yq -r '.items[]?.results' -o json | jq -r '.[]? | "❌ \(.message)"' | sed 's/<//g;s/>//g' >> $GITHUB_STEP_SUMMARY
+            cat tmp/results.yaml | yq -r '.items[]?.results' -o json | jq -r '.[]? | "\(.message)"' | sed 's/<//g;s/>//g' >> $GITHUB_STEP_SUMMARY
             echo '```' >> $GITHUB_STEP_SUMMARY
             rm tmp/results.yaml
           fi
@@ -78,7 +78,7 @@ jobs:
           if [ -f tmp/results.yaml ]; then
             echo "❌ gatekeeper errors:" >> $GITHUB_STEP_SUMMARY
             echo '```' >> $GITHUB_STEP_SUMMARY
-            cat tmp/results.yaml | yq -r '.items[]?.results' -o json | jq -r '.[]? | "❌ \(.message)"' | sed 's/<//g;s/>//g' >> $GITHUB_STEP_SUMMARY
+            cat tmp/results.yaml | yq -r '.items[]?.results' -o json | jq -r '.[]? | "\(.message)"' | sed 's/<//g;s/>//g' >> $GITHUB_STEP_SUMMARY
             echo '```' >> $GITHUB_STEP_SUMMARY
             rm tmp/results.yaml
           fi
@@ -99,7 +99,7 @@ jobs:
           if [ -f trivy-errors.json ]; then
             echo "❌ trivy errors:" >> $GITHUB_STEP_SUMMARY
             echo '```' >> $GITHUB_STEP_SUMMARY
-            cat trivy-errors.json | jq -r '.Results[]? | "❌ \(.Misconfigurations[]?.Message)"' >> $GITHUB_STEP_SUMMARY
+            cat trivy-errors.json | jq -r '.Results[]? | "\(.Misconfigurations[]?.Message)"' >> $GITHUB_STEP_SUMMARY
             echo '```' >> $GITHUB_STEP_SUMMARY
             rm trivy-errors.json
           fi
@@ -124,7 +124,9 @@ jobs:
           kubectl get events -n $CHART_NAME >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
           echo "kubectl logs:" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
           kubectl logs -l app.kubernetes.io/name=$CHART_NAME -n $CHART_NAME >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
   diff:
     if: ${{ github.event_name == 'pull_request' }}
     runs-on: ubuntu-22.04
@@ -150,7 +152,7 @@ jobs:
       - name: diff
         run: |
           echo '```' >> $GITHUB_STEP_SUMMARY
-          diff hydrated-manifests/$CHART_NAME/templates base-ref-resources/hydrated-manifests/$CHART_NAME/templates | sed 's/</++/g;s/>/--/g' >> $GITHUB_STEP_SUMMARY
+          diff hydrated-manifests/$CHART_NAME/templates base-ref-resources/hydrated-manifests/$CHART_NAME/templates >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
   artifact:
     needs: tests
