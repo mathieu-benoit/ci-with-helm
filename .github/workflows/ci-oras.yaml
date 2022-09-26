@@ -15,6 +15,93 @@ env:
   CHART_NAME: my-chart
   IMAGE_TAG: 0.1.0
 jobs:
+  tests:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3.0.2
+      - name: kustomize build
+        run: |
+          mkdir hydrated-manifests
+          kustomize build . > hydrated-manifests.yaml
+      - uses: google-github-actions/setup-gcloud@v0.5.0
+      - name: install kpt and nomos	
+        run: |
+          gcloud components install kpt nomos --quiet
+      - name: nomos vet	
+        id: vet
+        run: |
+          nomos vet --path hydrated-manifests.yaml --no-api-server-check --source-format unstructured --namespace $CHART_NAME
+      - name: nomos vet errors in summary
+        if: ${{ failure() && steps.vet.outcome == 'failure' }}
+        run: |
+          echo "🚫 nomos vet errors:" >> $GITHUB_STEP_SUMMARY
+          nomos vet --path hydrated-manifests/$CHART_NAME/templates --no-api-server-check --source-format unstructured --namespace $CHART_NAME 2>&1 | grep KNV &>> $GITHUB_STEP_SUMMARY
+      - name: kubeval
+        id: kubeval
+        if: ${{ always() }}
+        run: |
+          kpt fn eval hydrated-manifests/$CHART_NAME/templates --results-dir tmp --image gcr.io/kpt-fn/kubeval:v0.3 -- strict=true ignore_missing_schemas=true
+      - name: kubeval errors in summary
+        if: ${{ failure() && steps.kubeval.outcome == 'failure' }}
+        run: |
+          if [ -f tmp/results.yaml ]; then
+            echo "🚫 kubeval errors:" >> $GITHUB_STEP_SUMMARY
+            cat tmp/results.yaml | yq -r '.items[]?.results' -o json | jq -r '.[]? | "❌ \(.message)"' | sed 's/<//g;s/>//g' >> $GITHUB_STEP_SUMMARY
+            rm tmp/results.yaml
+          fi
+      - name: gatekeeper
+        id: gatekeeper
+        if: ${{ always() }}
+        run: |
+          cp policies/* hydrated-manifests/$CHART_NAME/templates
+          kpt fn eval hydrated-manifests/$CHART_NAME/templates --results-dir tmp --image gcr.io/kpt-fn/gatekeeper:v0.2
+      - name: gatkeeper errors in summary
+        if: ${{ failure() && steps.gatekeeper.outcome == 'failure' }}
+        run: |
+          if [ -f tmp/results.yaml ]; then
+            echo "🚫 gatekeeper errors:" >> $GITHUB_STEP_SUMMARY
+            cat tmp/results.yaml | yq -r '.items[]?.results' -o json | jq -r '.[]? | "❌ \(.message)"' | sed 's/<//g;s/>//g' >> $GITHUB_STEP_SUMMARY
+            rm tmp/results.yaml
+          fi
+      - name: trivy scan
+        id: trivy
+        if: ${{ always() }}
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'config'
+          image-ref: $CHART_NAME
+          exit-code: 1
+          format: json
+          severity: 'CRITICAL,HIGH,MEDIUM'
+          output: trivy-errors.json
+      - name: trivy errors in summary
+        if: ${{ failure() && steps.trivy.outcome == 'failure' }}
+        run: |
+          if [ -f trivy-errors.json ]; then
+            echo "🚫 trivy errors:" >> $GITHUB_STEP_SUMMARY
+            cat trivy-errors.json | jq -r '.Results[]? | "❌ \(.Misconfigurations[]?.Message)"' >> $GITHUB_STEP_SUMMARY
+            rm trivy-errors.json
+          fi
+      - name: create kind cluster
+        if: ${{ always() }}
+        run: |
+          kind version
+          kind create cluster
+      - name: helm install
+        id: deploy
+        if: ${{ always() }}
+        run: |
+          kubectl create ns $CHART_NAME
+          helm upgrade --install $CHART_NAME ./$CHART_NAME -n $CHART_NAME --wait --timeout=60s
+          kubectl wait --for=condition=available --timeout=60s deployment/$CHART_NAME -n $CHART_NAME
+      - name: helm install errors in summary
+        if: ${{ failure() && steps.deploy.outcome == 'failure' }}
+        run: |
+          echo "🚫 helm install errors:" >> $GITHUB_STEP_SUMMARY
+          echo "❌ kubectl get events:" >> $GITHUB_STEP_SUMMARY
+          kubectl get events -n $CHART_NAME >> $GITHUB_STEP_SUMMARY
+          echo "❌ kubectl logs:" >> $GITHUB_STEP_SUMMARY
+          kubectl logs -l app.kubernetes.io/name=$CHART_NAME -n $CHART_NAME >> $GITHUB_STEP_SUMMARY
   job:
     runs-on: ubuntu-22.04
     steps:
