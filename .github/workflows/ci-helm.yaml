@@ -27,7 +27,7 @@ jobs:
       - name: helm lint errors in summary
         if: ${{ failure() && steps.lint.outcome == 'failure' }}
         run: |
-          echo "🚫 helm lint errors." >> $GITHUB_STEP_SUMMARY
+          echo "❌ helm lint errors." >> $GITHUB_STEP_SUMMARY
       - name: helm template
         if: ${{ always() }}
         run: |
@@ -47,8 +47,10 @@ jobs:
       - name: nomos vet errors in summary
         if: ${{ failure() && steps.vet.outcome == 'failure' }}
         run: |
-          echo "🚫 nomos vet errors:" >> $GITHUB_STEP_SUMMARY
+          echo "❌ nomos vet errors:" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
           nomos vet --path hydrated-manifests/$CHART_NAME/templates --no-api-server-check --source-format unstructured --namespace $CHART_NAME 2>&1 | grep KNV &>> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
       - name: kubeval
         id: kubeval
         if: ${{ always() }}
@@ -58,8 +60,10 @@ jobs:
         if: ${{ failure() && steps.kubeval.outcome == 'failure' }}
         run: |
           if [ -f tmp/results.yaml ]; then
-            echo "🚫 kubeval errors:" >> $GITHUB_STEP_SUMMARY
-            cat tmp/results.yaml | yq -r '.items[]?.results' -o json | jq -r '.[]? | "❌ \(.message)"' | sed 's/<//g;s/>//g' >> $GITHUB_STEP_SUMMARY
+            echo "❌ kubeval errors:" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            cat tmp/results.yaml | yq -r '.items[]?.results' -o json | jq -r '.[]? | "\(.message)"' | sed 's/<//g;s/>//g' >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
             rm tmp/results.yaml
           fi
       - name: gatekeeper
@@ -72,8 +76,10 @@ jobs:
         if: ${{ failure() && steps.gatekeeper.outcome == 'failure' }}
         run: |
           if [ -f tmp/results.yaml ]; then
-            echo "🚫 gatekeeper errors:" >> $GITHUB_STEP_SUMMARY
-            cat tmp/results.yaml | yq -r '.items[]?.results' -o json | jq -r '.[]? | "❌ \(.message)"' | sed 's/<//g;s/>//g' >> $GITHUB_STEP_SUMMARY
+            echo "❌ gatekeeper errors:" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            cat tmp/results.yaml | yq -r '.items[]?.results' -o json | jq -r '.[]? | "\(.message)"' | sed 's/<//g;s/>//g' >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
             rm tmp/results.yaml
           fi
       - name: trivy scan
@@ -91,8 +97,10 @@ jobs:
         if: ${{ failure() && steps.trivy.outcome == 'failure' }}
         run: |
           if [ -f trivy-errors.json ]; then
-            echo "🚫 trivy errors:" >> $GITHUB_STEP_SUMMARY
-            cat trivy-errors.json | jq -r '.Results[]? | "❌ \(.Misconfigurations[]?.Message)"' >> $GITHUB_STEP_SUMMARY
+            echo "❌ trivy errors:" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            cat trivy-errors.json | jq -r '.Results[]? | "\(.Misconfigurations[]?.Message)"' >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
             rm trivy-errors.json
           fi
       - name: create kind cluster
@@ -110,11 +118,15 @@ jobs:
       - name: helm install errors in summary
         if: ${{ failure() && steps.deploy.outcome == 'failure' }}
         run: |
-          echo "🚫 helm install errors:" >> $GITHUB_STEP_SUMMARY
-          echo "kubectl get events:" >> $GITHUB_STEP_SUMMARY
+          echo "❌ helm install errors:" >> $GITHUB_STEP_SUMMARY
+          echo '`kubectl get events`:' >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
           kubectl get events -n $CHART_NAME >> $GITHUB_STEP_SUMMARY
-          echo "kubectl logs:" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo '`kubectl logs`:' >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
           kubectl logs -l app.kubernetes.io/name=$CHART_NAME -n $CHART_NAME >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
   diff:
     if: ${{ github.event_name == 'pull_request' }}
     runs-on: ubuntu-22.04
@@ -139,7 +151,11 @@ jobs:
           helm template base-ref-resources/ci-with-helm/$CHART_NAME --output-dir base-ref-resources/hydrated-manifests
       - name: diff
         run: |
-          diff hydrated-manifests/$CHART_NAME/templates base-ref-resources/hydrated-manifests/$CHART_NAME/templates | sed 's/</++/g;s/>/--/g' >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          set +e
+          diff base-ref-resources/hydrated-manifests/$CHART_NAME/templates hydrated-manifests/$CHART_NAME/templates >> $GITHUB_STEP_SUMMARY
+          set -e
+          echo '```' >> $GITHUB_STEP_SUMMARY
   artifact:
     needs: tests
     if: ${{ github.event_name == 'push' }}
