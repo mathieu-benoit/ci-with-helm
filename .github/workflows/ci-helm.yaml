@@ -20,6 +20,7 @@ on:
 env:
   CHART_NAME: my-chart
   IMAGE_TAG: 0.1.0
+  CONFIG_SYNC_VERSION: 1.13.0
 jobs:
   tests:
     runs-on: ubuntu-22.04
@@ -30,6 +31,9 @@ jobs:
         run: |
           kind version
           kind create cluster
+      - name: config sync install
+        run: |
+          kubectl apply -f https://github.com/GoogleContainerTools/kpt-config-sync/releases/download/v${CONFIG_SYNC_VERSION}/config-sync-manifest.yaml --wait
       - name: helm install
         id: deploy
         if: ${{ always() }}
