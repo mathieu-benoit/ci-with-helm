@@ -31,6 +31,7 @@ jobs:
         run: |
           kind version
           # kind create cluster --image kindest/node:v1.24.6
+          chmod +x .github/workflows/create-kind-cluster-with-local-registry.sh
           .github/workflows/create-kind-cluster-with-local-registry.sh
       - name: config sync install
         run: |
