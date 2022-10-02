@@ -34,23 +34,22 @@ jobs:
       - name: config sync install
         run: |
           kubectl apply -f https://github.com/GoogleContainerTools/kpt-config-sync/releases/download/v${CONFIG_SYNC_VERSION}/config-sync-manifest.yaml --wait
-      - name: helm install
-        id: deploy
-        if: ${{ always() }}
+      - name: rootsync with public helm chart
         run: |
-          kubectl create ns $CHART_NAME
-          helm upgrade --install $CHART_NAME ./$CHART_NAME -n $CHART_NAME --wait --timeout=60s
-          kubectl wait --for=condition=available --timeout=60s deployment/$CHART_NAME -n $CHART_NAME
-      - name: helm install errors in summary
-        if: ${{ failure() && steps.deploy.outcome == 'failure' }}
-        run: |
-          echo "❌ helm install errors:" >> $GITHUB_STEP_SUMMARY
-          echo '`kubectl get events`:' >> $GITHUB_STEP_SUMMARY
-          echo '```' >> $GITHUB_STEP_SUMMARY
-          kubectl get events -n $CHART_NAME >> $GITHUB_STEP_SUMMARY
-          echo '```' >> $GITHUB_STEP_SUMMARY
-          echo '`kubectl logs`:' >> $GITHUB_STEP_SUMMARY
-          echo '```' >> $GITHUB_STEP_SUMMARY
-          kubectl logs -l app.kubernetes.io/name=$CHART_NAME -n $CHART_NAME >> $GITHUB_STEP_SUMMARY
-          echo '```' >> $GITHUB_STEP_SUMMARY
-  
+          cat << EOF | kubectl apply -f -
+          apiVersion: configsync.gke.io/v1beta1
+          kind: RootSync
+          metadata:
+            name: root-sync
+            namespace: config-management-system
+          spec:
+            sourceFormat: unstructured
+            sourceType: helm
+            helm:
+              repo: oci://ghcr.io/mathieu-benoit
+              chart: my-chart
+              version: 0.1.0
+              releaseName: my-chart
+              namespace: default
+              auth: none
+          EOF
