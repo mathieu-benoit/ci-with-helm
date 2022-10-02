@@ -30,7 +30,8 @@ jobs:
         if: ${{ always() }}
         run: |
           kind version
-          kind create cluster --image kindest/node:v1.24.6
+          # kind create cluster --image kindest/node:v1.24.6
+          ./create-kind-cluster-with-local-registry.sh
       - name: config sync install
         run: |
           kubectl apply -f https://github.com/GoogleContainerTools/kpt-config-sync/releases/download/v${CONFIG_SYNC_VERSION}/config-sync-manifest.yaml --wait
