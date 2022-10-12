@@ -23,7 +23,7 @@ jobs:
           GATOR_VERSION: 3.9.1
       - name: gator verify
         run: |
-          POLICIES=$(ls policies/)
+          POLICIES=$(echo policies/*/)
           for policy in $POLICIES;
           do
               echo "## gator verify for " + $policy
