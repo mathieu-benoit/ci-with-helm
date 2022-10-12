@@ -42,7 +42,7 @@ jobs:
         if: ${{ always() }}
         run: |
           mkdir hydrated-manifests
-          helm template $CHART_NAME --output-dir hydrated-manifests
+          helm template $CHART_NAME --output-dir hydrated-manifests -n $CHART_NAME
       - name: install kpt
         if: ${{ always() }}
         run: |
