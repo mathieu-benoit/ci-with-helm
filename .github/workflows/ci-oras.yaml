@@ -47,19 +47,19 @@ jobs:
       - name: install nomos	
         if: ${{ always() }}
         run: |
-          gsutil cp gs://config-management-release/released/latest/linux_amd64/nomos nomos
+          gcloud components install kpt nomos --quiet
       - name: nomos vet	
         if: ${{ always() }}
         id: vet
         run: |
-          ./nomos vet --path hydrated-manifests --no-api-server-check --source-format unstructured --namespace $CHART_NAME
+          nomos vet --path hydrated-manifests --no-api-server-check --source-format unstructured --namespace $CHART_NAME
       - name: nomos vet errors in summary
         if: ${{ failure() && steps.vet.outcome == 'failure' }}
         run: |
           echo "❌ nomos vet errors:" >> $GITHUB_STEP_SUMMARY
           set +e
           echo '```' >> $GITHUB_STEP_SUMMARY
-          ./nomos vet --path hydrated-manifests --no-api-server-check --source-format unstructured --namespace $CHART_NAME 2>&1 | grep KNV &>> $GITHUB_STEP_SUMMARY
+          nomos vet --path hydrated-manifests --no-api-server-check --source-format unstructured --namespace $CHART_NAME 2>&1 | grep KNV &>> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
           set -e
       - name: kubeval
