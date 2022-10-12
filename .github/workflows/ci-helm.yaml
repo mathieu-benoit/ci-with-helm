@@ -8,6 +8,7 @@ on:
       - main
     paths-ignore:
       - 'README.md'
+      - 'docs/**'
       - '.github/dependabot.yml'
       - '.github/workflows/ci-oras.yaml'
       - 'kustomization.yaml'
@@ -15,6 +16,7 @@ on:
   pull_request:
     paths-ignore:
       - 'README.md'
+      - 'docs/**'
       - '.github/dependabot.yml'
       - '.github/workflows/ci-oras.yaml'
       - 'kustomization.yaml'

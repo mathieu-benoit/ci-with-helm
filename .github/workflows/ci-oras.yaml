@@ -8,11 +8,13 @@ on:
       - main
     paths-ignore:
       - 'README.md'
+      - 'docs/**'
       - '.github/dependabot.yml'
       - '.github/workflows/ci-helm.yaml'
   pull_request:
     paths-ignore:
       - 'README.md'
+      - 'docs/**'
       - '.github/dependabot.yml'
       - '.github/workflows/ci-helm.yaml'
       - '.github/workflows/ci-policies.yaml'
