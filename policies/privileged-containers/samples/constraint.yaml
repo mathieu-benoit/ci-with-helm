@@ -5,8 +5,16 @@ metadata:
 spec:
   match:
     kinds:
-      - apiGroups: [""]
-        kinds: ["Pod"]
-      - apiGroups: ["apps"]
-        kinds: ["Deployment"]
-    excludedNamespaces: ["kube-system"]
+      - apiGroups:
+        - ""
+        kinds:
+        - Pod
+      - apiGroups:
+        - apps
+        kinds:
+        - Deployment
+    excludedNamespaces:
+    - config-management-monitoring
+    - config-management-system
+    - gke-connect
+    - kube-system

@@ -5,11 +5,16 @@ metadata:
 spec:
   match:
     kinds:
-      - apiGroups: [""]
-        kinds: ["Pod"]
-      - apiGroups: ["apps"]
-        kinds: ["Deployment"]
-    excludedNamespaces: ["kube-system"]
+      - apiGroups:
+        - ""
+        kinds:
+        - Pod
+      - apiGroups:
+        - apps
+        kinds:
+        - Deployment
+    excludedNamespaces:
+    - kube-system
   parameters:
     runAsUser:
       rule: MustRunAsNonRoot
