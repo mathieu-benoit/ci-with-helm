@@ -9,6 +9,7 @@ spec:
         kinds: ["Pod"]
       - apiGroups: ["apps"]
         kinds: ["Deployment"]
+    excludedNamespaces: ["kube-system"]
   parameters:
     runAsUser:
       rule: MustRunAsNonRoot
