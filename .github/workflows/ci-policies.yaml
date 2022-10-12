@@ -1,4 +1,7 @@
 name: ci-policies
+permissions:
+  packages: write
+  contents: read
 on:
   push:
     branches:
@@ -10,6 +13,8 @@ on:
     paths:
       - 'policies/**'
       - '.github/workflows/ci-policies.yaml'
+env:
+  IMAGE_TAG: 0.1.0
 jobs:
   gator:
     runs-on: ubuntu-22.04
@@ -29,4 +34,17 @@ jobs:
               echo "## gator verify for " + $policy
               ./gator verify $policy/suite.yaml
           done
+      - name: oras login
+        run: |
+          echo ${{ secrets.GITHUB_TOKEN }} | oras login ghcr.io -u $ --password-stdin
+      - name: generate policies
+        run: |
+          kustomize build policies/ > policies.yaml
+      - name: tar
+        run: |
+          tar -cf policies.tar policies.yaml
+      - name: oras push
+        if: ${{ github.event_name == 'push' }}
+        run: |
+          oras push ghcr.io/${{ github.repository_owner }}/policies:$IMAGE_TAG policies.tar
           

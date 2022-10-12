@@ -11,12 +11,14 @@ on:
       - '.github/dependabot.yml'
       - '.github/workflows/ci-oras.yaml'
       - 'kustomization.yaml'
+      - '.github/workflows/ci-policies.yaml'
   pull_request:
     paths-ignore:
       - 'README.md'
       - '.github/dependabot.yml'
       - '.github/workflows/ci-oras.yaml'
       - 'kustomization.yaml'
+      - '.github/workflows/ci-policies.yaml'
 env:
   CHART_NAME: my-chart
   IMAGE_TAG: 0.1.0
