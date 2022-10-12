@@ -65,42 +65,46 @@ spec:
 EOF
 ```
 
-Verify that the OCI artifact has been successfully synced, run `kubectl get rootsync -A`:
+Verify that the Helm chart has been successfully synced, run `kubectl get rootsync -A`:
 ```
-NAMESPACE                  NAME ...
-config-management-system   root-sync-policies ...
+NAMESPACE                  NAME                 RENDERINGCOMMIT...
+config-management-system   root-sync-helm       my-chart:0.1.0...
 ```
+
 Check the Config Sync status, run `nomos status --contexts $(k config current-context)`:
 ```
 ...
   --------------------
-  <root>:root-sync-policies   ghcr.io/mathieu-benoit/policies:0.1.0                              
-  SYNCED                      84248a85e7c33b2d860c563f3c8c59b6831fde5bd3ca6aefbd997eba1b86b32d   
+  <root>:root-sync-helm   N/A              
+  SYNCED                  my-chart:0.1.0   
   Managed resources:
-     NAMESPACE   NAME                                                                           STATUS    SOURCEHASH
-                 constrainttemplate.templates.gatekeeper.sh/k8spspallowedusers                  Current   84248a8
-                 constrainttemplate.templates.gatekeeper.sh/k8spspprivilegedcontainer           Current   84248a8
-                 k8spspallowedusers.constraints.gatekeeper.sh/psp-pods-allowed-user-ranges      Current   84248a8
-                 k8spspprivilegedcontainer.constraints.gatekeeper.sh/psp-privileged-container   Current   84248a8
+     NAMESPACE   NAME                       STATUS    SOURCEHASH
+                 namespace/my-chart         Current   my-char
+     my-chart    deployment.apps/my-chart   Current   my-char
+     my-chart    service/my-chart           Current   my-char
+     my-chart    serviceaccount/my-chart    Current   my-char
+...
 ```
-Check that the `Constraints` and `ConstraintTemplates` are successfullfy deployed, run `kubectl get constrainttemplates,constraints`:
+
+Check that the app is successfullfy deployed, run `kubectl get all -n my-chart`:
 ```
-NAME                                                                   AGE
-constrainttemplate.templates.gatekeeper.sh/k8spspallowedusers          14m
-constrainttemplate.templates.gatekeeper.sh/k8spspprivilegedcontainer   14m
+NAME                            READY   STATUS    RESTARTS   AGE
+pod/my-chart-787fcd5cbc-kxgkt   1/1     Running   0          5m21s
 
-NAME                                                                           ENFORCEMENT-ACTION   TOTAL-VIOLATIONS
-k8spspprivilegedcontainer.constraints.gatekeeper.sh/psp-privileged-container                        0
+NAME               TYPE        CLUSTER-IP    EXTERNAL-IP   PORT(S)    AGE
+service/my-chart   ClusterIP   10.112.8.71   <none>        8080/TCP   5m23s
 
-NAME                                                                        ENFORCEMENT-ACTION   TOTAL-VIOLATIONS
-k8spspallowedusers.constraints.gatekeeper.sh/psp-pods-allowed-user-ranges                        0
+NAME                       READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/my-chart   1/1     1            1           5m23s
+
+NAME                                  DESIRED   CURRENT   READY   AGE
+replicaset.apps/my-chart-787fcd5cbc   1         1         1       5m22s
 ```
 
 (Optional) Cleanup:
 ```bash
-kubectl delete rootsync root-sync-policies -n config-management-system
-kubectl delete constrainttemplates --all
-kubectl delete constraints --all
+kubectl delete rootsync root-sync-helm -n config-management-system
+kubectl delete ns my-chart
 rm -r tmp
 ```
 

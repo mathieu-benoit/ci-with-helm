@@ -57,6 +57,7 @@ Verify that the OCI artifact has been successfully synced, run `kubectl get root
 NAMESPACE                  NAME ...
 config-management-system   root-sync-policies ...
 ```
+
 Check the Config Sync status, run `nomos status --contexts $(k config current-context)`:
 ```
 ...
@@ -70,6 +71,7 @@ Check the Config Sync status, run `nomos status --contexts $(k config current-co
                  k8spspallowedusers.constraints.gatekeeper.sh/psp-pods-allowed-user-ranges      Current   84248a8
                  k8spspprivilegedcontainer.constraints.gatekeeper.sh/psp-privileged-container   Current   84248a8
 ```
+
 Check that the `Constraints` and `ConstraintTemplates` are successfullfy deployed, run `kubectl get constrainttemplates,constraints`:
 ```
 NAME                                                                   AGE
