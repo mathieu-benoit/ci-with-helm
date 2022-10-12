@@ -9,6 +9,10 @@ Structure of the folders and files in this repository:
 │       ├── ci-oras.yaml
 │       └── ci-policies.yaml
 ├── docs
+│   ├── helm-demo.md
+│   ├── k8s-cluster-setup.md
+│   ├── kustomize-demo.md
+│   └── policies-demo.md
 ├── kustomization.yaml
 ├── my-chart
 │   ├── charts

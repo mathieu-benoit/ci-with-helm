@@ -1,6 +1,6 @@
 # CI/GitOps with Gatekeeper policies as OCI artifact demo
 
-CI workflow with Gatekeeper policies:
+CI workflow with Gatekeeper policies as OCI artifact:
 ```mermaid
 flowchart TB
     subgraph tests-job
@@ -16,15 +16,20 @@ flowchart TB
 
 In this repository, the policies have already been pushed in this public GitHub Container Registry.
 
-Pull this OCI artifact locally:
-```bash
-oras pull ghcr.io/mathieu-benoit/policies:0.1.0
-```
+As prerequisites, you need to have these tools installed:
+- [`oras`]()
+- [`kubectl`](https://kubernetes.io/docs/tasks/tools/#kubectl)
+- [`nomos`]()
 
-(Optional) Verify that the OCI artifact contains the Gatkeeper policies:
+Pull this OCI artifact locally:
 ```bash
 mkdir tmp
 cd tmp
+oras pull ghcr.io/mathieu-benoit/policies:0.1.0
+```
+
+Verify that the OCI artifact contains the Gatkeeper policies:
+```bash
 tar -xvf policies.tar
 cat policies.yaml
 ```
@@ -81,7 +86,9 @@ k8spspallowedusers.constraints.gatekeeper.sh/psp-pods-allowed-user-ranges       
 (Optional) Cleanup:
 ```bash
 kubectl delete rootsync root-sync-policies -n config-management-system
-kubectl delete constrainttemplates,constraints --all
+kubectl delete constrainttemplates --all
+kubectl delete constraints --all
+rm -r tmp
 ```
 
 ## More resources
