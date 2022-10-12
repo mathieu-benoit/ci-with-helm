@@ -1,0 +1,8 @@
+kind: Suite
+apiVersion: test.gatekeeper.sh/v1alpha1
+metadata:
+  name: users
+tests:
+- name: users
+  template: template.yaml
+  constraint: samples/constraint.yaml

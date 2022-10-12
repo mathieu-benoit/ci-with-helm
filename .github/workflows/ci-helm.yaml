@@ -80,7 +80,7 @@ jobs:
         id: gatekeeper
         if: ${{ always() }}
         run: |
-          cp policies/* hydrated-manifests/$CHART_NAME/templates
+          kustomize build policies/ > hydrated-manifests/$CHART_NAME/templates/policies.yaml
           ./kpt fn eval hydrated-manifests/$CHART_NAME/templates --results-dir tmp --image gcr.io/kpt-fn/gatekeeper:v0.2
       - name: gatkeeper errors in summary
         if: ${{ failure() && steps.gatekeeper.outcome == 'failure' }}

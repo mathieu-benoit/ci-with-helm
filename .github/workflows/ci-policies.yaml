@@ -1,0 +1,32 @@
+name: ci-policies
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'policies/**'
+      - '.github/workflows/ci-policies.yaml'
+  pull_request:
+    paths:
+      - 'policies/**'
+      - '.github/workflows/ci-policies.yaml'
+jobs:
+  gator:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: install gator
+        run: |
+          curl -OL https://github.com/open-policy-agent/gatekeeper/releases/download/v${GATOR_VERSION}/gator-v${GATOR_VERSION}-linux-amd64.tar.gz
+          tar xvf gator-v${GATOR_VERSION}-linux-amd64.tar.gz && rm gator-v${GATOR_VERSION}-linux-amd64.tar.gz
+        env:
+          GATOR_VERSION: 3.9.1
+      - name: gator verify
+        run: |
+          POLICIES=$(ls policies/)
+          for policy in $POLICIES;
+          do
+              echo "## gator verify for " + $policy
+              ./gator verify $policy/suite.yaml
+          done
+          
