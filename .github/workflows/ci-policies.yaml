@@ -16,7 +16,7 @@ on:
 env:
   IMAGE_TAG: 0.1.0
 jobs:
-  gator:
+  tests:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
@@ -34,6 +34,12 @@ jobs:
               echo "## gator verify for " + $policy
               ./gator verify $policy/suite.yaml
           done
+  artifact:
+    needs: tests
+    if: ${{ github.event_name == 'push' }}
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
       - name: oras login
         run: |
           echo ${{ secrets.GITHUB_TOKEN }} | oras login ghcr.io -u $ --password-stdin
@@ -44,7 +50,5 @@ jobs:
         run: |
           tar -cf policies.tar policies.yaml
       - name: oras push
-        if: ${{ github.event_name == 'push' }}
         run: |
           oras push ghcr.io/${{ github.repository_owner }}/policies:$IMAGE_TAG policies.tar
-          

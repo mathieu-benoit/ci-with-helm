@@ -1,11 +1,9 @@
 # ci-with-helm
 
+Structure of the folders and files:
 ```
 .
-├── .github
-│   └── workflows
-│       ├── ci-helm.yaml
-│       ├── ci-oras.yaml
+├── docs
 ├── kustomization.yaml
 ├── my-chart
 │   ├── charts
@@ -21,13 +19,42 @@
 │   │   └── tests
 │   └── values.yaml
 ├── policies
-│   ├── k8spspallowedusers.yaml
-│   ├── k8spspprivilegedcontainer.yaml
-│   ├── psp-pods-allowed-user-ranges.yaml
-│   └── psp-privileged-container.yaml
+│   ├── kustomization.yaml
+│   ├── privileged-containers
+│   │   ├── kustomization.yaml
+│   │   ├── samples
+│   │   │   ├── constraint.yaml
+│   │   │   ├── example_allowed.yaml
+│   │   │   └── example_disallowed.yaml
+│   │   ├── suite.yaml
+│   │   └── template.yaml
+│   └── users
+│       ├── kustomization.yaml
+│       ├── samples
+│       │   ├── constraint.yaml
+│       │   ├── example_allowed.yaml
+│       │   └── example_disallowed.yaml
+│       ├── suite.yaml
+│       └── template.yaml
+└── README.md
 ```
 
-## With Helm chart
+## CI workflow with Gatekeeper policies
+
+```mermaid
+flowchart TB
+    subgraph tests-job
+    gator((gator verify))
+    end
+    subgraph artifact-job
+    login(oras login) --> build(kustomize build)
+    build --> package(tar)
+    package --> push(oras push)
+    end
+    tests-job --> artifact-job
+```
+
+## CI workflow with Helm chart
 
 ```mermaid
 flowchart TB
@@ -46,13 +73,13 @@ flowchart TB
     kind --> deploy((helm install))
     end
     subgraph artifact-job
-    package(helm package) --> login(helm login)
-    login --> push(helm push)
+    login(helm login) --> package(helm package)
+    package --> push(helm push)
     end
     tests-job --> artifact-job
 ```
 
-## With Kustomize
+## CI workflow with Kustomize
 
 ```mermaid
 flowchart TB
@@ -70,8 +97,8 @@ flowchart TB
     kind --> deploy((kubectl apply -f))
     end
     subgraph artifact-job
-    package(tar) --> login(oras login)
-    login --> push(oras push)
+    login(oras login) --> package(tar)
+    package --> push(oras push)
     end
     tests-job --> artifact-job
 ```
