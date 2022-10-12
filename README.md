@@ -1,11 +1,18 @@
 # ci-with-helm
 
+Structure of the folders and files in this repository:
 ```
 .
 ├── .github
 │   └── workflows
 │       ├── ci-helm.yaml
 │       ├── ci-oras.yaml
+│       └── ci-policies.yaml
+├── docs
+│   ├── helm-demo.md
+│   ├── k8s-cluster-setup.md
+│   ├── kustomize-demo.md
+│   └── policies-demo.md
 ├── kustomization.yaml
 ├── my-chart
 │   ├── charts
@@ -21,57 +28,27 @@
 │   │   └── tests
 │   └── values.yaml
 ├── policies
-│   ├── k8spspallowedusers.yaml
-│   ├── k8spspprivilegedcontainer.yaml
-│   ├── psp-pods-allowed-user-ranges.yaml
-│   └── psp-privileged-container.yaml
+│   ├── kustomization.yaml
+│   ├── privileged-containers
+│   │   ├── kustomization.yaml
+│   │   ├── samples
+│   │   │   ├── constraint.yaml
+│   │   │   ├── example_allowed.yaml
+│   │   │   └── example_disallowed.yaml
+│   │   ├── suite.yaml
+│   │   └── template.yaml
+│   └── users
+│       ├── kustomization.yaml
+│       ├── samples
+│       │   ├── constraint.yaml
+│       │   ├── example_allowed.yaml
+│       │   └── example_disallowed.yaml
+│       ├── suite.yaml
+│       └── template.yaml
+└── README.md
 ```
 
-## With Helm chart
-
-```mermaid
-flowchart TB
-    subgraph diff-job
-    get(kpt get base-ref) --> build1(helm template current)
-    build1 --> build2(helm template base-ref)
-    build2 --> diff(diff base-ref current)
-    end
-    subgraph tests-job
-    lint((helm lint)) --> template{{helm template}}
-    template --> vet((nomos vet))
-    vet --> kubeval((kubeval))
-    kubeval --> gatekeeper((gatekeeper))
-    gatekeeper --> trivy((trivy config))
-    trivy --> kind{{kind cluster}}
-    kind --> deploy((helm install))
-    end
-    subgraph artifact-job
-    package(helm package) --> login(helm login)
-    login --> push(helm push)
-    end
-    tests-job --> artifact-job
-```
-
-## With Kustomize
-
-```mermaid
-flowchart TB
-    subgraph diff-job
-    get(kpt get base-ref) --> build1(kustomize build current)
-    build1 --> build2(kustomize build base-ref)
-    build2 --> diff(diff base-ref current)
-    end
-    subgraph tests-job
-    hydrate{{kustomize build}} --> vet((nomos vet))
-    vet --> kubeval((kubeval))
-    kubeval --> gatekeeper((gatekeeper))
-    gatekeeper --> trivy((trivy config))
-    trivy --> kind{{kind cluster}}
-    kind --> deploy((kubectl apply -f))
-    end
-    subgraph artifact-job
-    package(tar) --> login(oras login)
-    login --> push(oras push)
-    end
-    tests-job --> artifact-job
-```
+This repository contains 3 main demos:
+- [CI/GitOps with Gatekeeper policies as OCI artifact](docs/policies-demo.md)
+- [CI/GitOps with Helm chart](docs/helm-demo.md)
+- [CI/GitOps with Kustomize overlay as OCI artifact](docs/kustomize-demo.md)

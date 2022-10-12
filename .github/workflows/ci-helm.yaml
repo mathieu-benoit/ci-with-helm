@@ -8,18 +8,28 @@ on:
       - main
     paths-ignore:
       - 'README.md'
+      - 'docs/**'
       - '.github/dependabot.yml'
       - '.github/workflows/ci-oras.yaml'
       - 'kustomization.yaml'
+      - '.github/workflows/ci-policies.yaml'
   pull_request:
+    paths-ignore:
+      - 'README.md'
+      - 'docs/**'
+      - '.github/dependabot.yml'
+      - '.github/workflows/ci-oras.yaml'
+      - 'kustomization.yaml'
+      - '.github/workflows/ci-policies.yaml'
 env:
   CHART_NAME: my-chart
   IMAGE_TAG: 0.1.0
+  KPT_VERSION: 1.0.0-beta.21
 jobs:
   tests:
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3.0.2
+      - uses: actions/checkout@v3
       - name: helm lint
         id: lint
         run: |
@@ -32,13 +42,17 @@ jobs:
         if: ${{ always() }}
         run: |
           mkdir hydrated-manifests
-          helm template $CHART_NAME --output-dir hydrated-manifests
-      - uses: google-github-actions/setup-gcloud@v0.5.0
-        if: ${{ always() }}
-      - name: install kpt and nomos	
+          helm template $CHART_NAME --output-dir hydrated-manifests -n $CHART_NAME
+      - name: install kpt
         if: ${{ always() }}
         run: |
-          gcloud components install kpt nomos --quiet
+          curl -L https://github.com/GoogleContainerTools/kpt/releases/download/v${KPT_VERSION}/kpt_linux_amd64 > kpt
+          chmod +x kpt
+      - uses: google-github-actions/setup-gcloud@v0.6.0
+        if: ${{ always() }}
+      - name: install nomos	
+        run: |
+          gcloud components install nomos --quiet
       - name: nomos vet
         if: ${{ always() }}
         id: vet
@@ -55,7 +69,7 @@ jobs:
         id: kubeval
         if: ${{ always() }}
         run: |
-          kpt fn eval hydrated-manifests/$CHART_NAME/templates --results-dir tmp --image gcr.io/kpt-fn/kubeval:v0.3 -- strict=true ignore_missing_schemas=true
+          ./kpt fn eval hydrated-manifests/$CHART_NAME/templates --results-dir tmp --image gcr.io/kpt-fn/kubeval:v0.3 -- strict=true ignore_missing_schemas=true
       - name: kubeval errors in summary
         if: ${{ failure() && steps.kubeval.outcome == 'failure' }}
         run: |
@@ -70,8 +84,8 @@ jobs:
         id: gatekeeper
         if: ${{ always() }}
         run: |
-          cp policies/* hydrated-manifests/$CHART_NAME/templates
-          kpt fn eval hydrated-manifests/$CHART_NAME/templates --results-dir tmp --image gcr.io/kpt-fn/gatekeeper:v0.2
+          kustomize build policies/ > hydrated-manifests/$CHART_NAME/templates/policies.yaml
+          ./kpt fn eval hydrated-manifests/$CHART_NAME/templates --results-dir tmp --image gcr.io/kpt-fn/gatekeeper:v0.2
       - name: gatkeeper errors in summary
         if: ${{ failure() && steps.gatekeeper.outcome == 'failure' }}
         run: |
@@ -88,7 +102,7 @@ jobs:
         uses: aquasecurity/trivy-action@master
         with:
           scan-type: 'config'
-          image-ref: $CHART_NAME
+          scan-ref: ./hydrated-manifests/${{ env.CHART_NAME}}
           exit-code: 1
           format: json
           severity: 'CRITICAL,HIGH,MEDIUM'
@@ -131,15 +145,16 @@ jobs:
     if: ${{ github.event_name == 'pull_request' }}
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3.0.2
-      - uses: google-github-actions/setup-gcloud@v0.5.0
+      - uses: actions/checkout@v3
       - name: install kpt
+        if: ${{ always() }}
         run: |
-          gcloud components install kpt --quiet
+          curl -L https://github.com/GoogleContainerTools/kpt/releases/download/v${KPT_VERSION}/kpt_linux_amd64 > kpt
+          chmod +x kpt
       - name: kpt get base ref
         run: |
           mkdir base-ref-resources
-          kpt pkg get https://github.com/${{ github.repository }}.git/@${{ github.base_ref }} base-ref-resources
+          ./kpt pkg get https://github.com/${{ github.repository }}.git/@${{ github.base_ref }} base-ref-resources
           rm base-ref-resources/ci-with-helm/Kptfile
       - name: helm template current branch
         run: |
@@ -161,7 +176,7 @@ jobs:
     if: ${{ github.event_name == 'push' }}
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3.0.2
+      - uses: actions/checkout@v3
       - name: helm package
         run: |
           helm package $CHART_NAME --version $IMAGE_TAG

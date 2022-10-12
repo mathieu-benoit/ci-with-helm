@@ -1,0 +1,20 @@
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sPSPPrivilegedContainer
+metadata:
+  name: psp-privileged-container
+spec:
+  match:
+    kinds:
+      - apiGroups:
+        - ""
+        kinds:
+        - Pod
+      - apiGroups:
+        - apps
+        kinds:
+        - Deployment
+    excludedNamespaces:
+    - config-management-monitoring
+    - config-management-system
+    - gke-connect
+    - kube-system

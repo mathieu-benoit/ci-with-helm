@@ -1,0 +1,54 @@
+name: ci-policies
+permissions:
+  packages: write
+  contents: read
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'policies/**'
+      - '.github/workflows/ci-policies.yaml'
+  pull_request:
+    paths:
+      - 'policies/**'
+      - '.github/workflows/ci-policies.yaml'
+env:
+  IMAGE_TAG: 0.1.0
+jobs:
+  tests:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+      - name: install gator
+        run: |
+          curl -OL https://github.com/open-policy-agent/gatekeeper/releases/download/v${GATOR_VERSION}/gator-v${GATOR_VERSION}-linux-amd64.tar.gz
+          tar xvf gator-v${GATOR_VERSION}-linux-amd64.tar.gz && rm gator-v${GATOR_VERSION}-linux-amd64.tar.gz
+        env:
+          GATOR_VERSION: 3.9.1
+      - name: gator verify
+        run: |
+          POLICIES=$(echo policies/*/)
+          for policy in $POLICIES;
+          do
+              echo "## gator verify for " + $policy
+              ./gator verify $policy/suite.yaml
+          done
+  artifact:
+    needs: tests
+    if: ${{ github.event_name == 'push' }}
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+      - name: oras login
+        run: |
+          echo ${{ secrets.GITHUB_TOKEN }} | oras login ghcr.io -u $ --password-stdin
+      - name: generate policies
+        run: |
+          kustomize build policies/ > policies.yaml
+      - name: tar
+        run: |
+          tar -cf policies.tar policies.yaml
+      - name: oras push
+        run: |
+          oras push ghcr.io/${{ github.repository_owner }}/policies:$IMAGE_TAG policies.tar

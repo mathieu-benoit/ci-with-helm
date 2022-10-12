@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "my-chart.fullname" . }}
+  namespace: {{.Release.Namespace}}
   labels:
     {{- include "my-chart.labels" . | nindent 4 }}
 spec:

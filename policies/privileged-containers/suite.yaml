@@ -1,0 +1,17 @@
+kind: Suite
+apiVersion: test.gatekeeper.sh/v1alpha1
+metadata:
+  name: privileged-containers
+tests:
+- name: privileged-containers
+  template: template.yaml
+  constraint: samples/constraint.yaml
+  cases:
+  - name: example-disallowed
+    object: samples/example_disallowed.yaml
+    assertions:
+    - violations: yes
+  - name: example-allowed
+    object: samples/example_allowed.yaml
+    assertions:
+    - violations: no
