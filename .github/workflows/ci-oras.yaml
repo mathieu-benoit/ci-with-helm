@@ -99,7 +99,7 @@ jobs:
         uses: aquasecurity/trivy-action@master
         with:
           scan-type: 'config'
-          image-ref: $CHART_NAME
+          image-ref: hydrated-manifests/$CHART_NAME
           exit-code: 1
           format: json
           severity: 'CRITICAL,HIGH,MEDIUM'
