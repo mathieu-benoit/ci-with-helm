@@ -22,6 +22,7 @@ env:
   CHART_NAME: my-chart
   IMAGE_TAG: 0.1.0
   KPT_VERSION: 1.0.0-beta.21
+  NOMOS_VERSION: 1.13.0
 jobs:
   tests:
     runs-on: ubuntu-22.04
@@ -45,24 +46,23 @@ jobs:
         run: |
           curl -L https://github.com/GoogleContainerTools/kpt/releases/download/v${KPT_VERSION}/kpt_linux_amd64 > kpt
           chmod +x kpt
-      - uses: google-github-actions/setup-gcloud@v0.6.0
-        if: ${{ always() }}
       - name: install nomos	
         if: ${{ always() }}
         run: |
-          gcloud components install kpt nomos --quiet
+          curl -L https://github.com/GoogleContainerTools/kpt-config-sync/releases/download/v${NOMOS_VERSION}/nomos_linux_amd64 > nomos
+          chmod +x nomos
       - name: nomos vet	
         if: ${{ always() }}
         id: vet
         run: |
-          nomos vet --path hydrated-manifests --no-api-server-check --source-format unstructured --namespace $CHART_NAME
+          ./nomos vet --path hydrated-manifests --no-api-server-check --source-format unstructured --namespace $CHART_NAME
       - name: nomos vet errors in summary
         if: ${{ failure() && steps.vet.outcome == 'failure' }}
         run: |
           echo "❌ nomos vet errors:" >> $GITHUB_STEP_SUMMARY
           set +e
           echo '```' >> $GITHUB_STEP_SUMMARY
-          nomos vet --path hydrated-manifests --no-api-server-check --source-format unstructured --namespace $CHART_NAME 2>&1 | grep KNV &>> $GITHUB_STEP_SUMMARY
+          ./nomos vet --path hydrated-manifests --no-api-server-check --source-format unstructured --namespace $CHART_NAME 2>&1 | grep KNV &>> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
           set -e
       - name: kubeval
