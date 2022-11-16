@@ -48,7 +48,7 @@ jobs:
           kustomize build policies/ > policies.yaml
       - name: tar
         run: |
-          tar -cf policies.tar policies.yaml
+          tar -czf policies.tar.gz policies.yaml
       - name: oras push
         run: |
-          oras push ghcr.io/${{ github.repository_owner }}/policies:$IMAGE_TAG policies.tar
+          oras push ghcr.io/${{ github.repository_owner }}/policies:$IMAGE_TAG policies.tar.gz

@@ -181,8 +181,8 @@ jobs:
           echo ${{ secrets.GITHUB_TOKEN }} | oras login ghcr.io -u $ --password-stdin
       - name: tar
         run: |
-          tar -cf $CHART_NAME.tar kustomization.yaml $CHART_NAME/
+          tar -czf $CHART_NAME.tar.gz kustomization.yaml $CHART_NAME/
       - name: oras push
         if: ${{ github.event_name == 'push' }}
         run: |
-          oras push ghcr.io/${{ github.repository_owner }}/$CHART_NAME-oras:$IMAGE_TAG $CHART_NAME.tar
+          oras push ghcr.io/${{ github.repository_owner }}/$CHART_NAME-oras:$IMAGE_TAG $CHART_NAME.tar.gz

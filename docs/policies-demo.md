@@ -30,7 +30,7 @@ oras pull ghcr.io/mathieu-benoit/policies:0.1.0
 
 Verify that the OCI artifact contains the Gatkeeper policies:
 ```bash
-tar -xvf policies.tar
+tar -xzvf policies.tar.gz
 cat policies.yaml
 ```
 
