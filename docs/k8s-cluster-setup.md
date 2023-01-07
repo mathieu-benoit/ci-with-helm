@@ -27,7 +27,8 @@ gcloud container clusters create ${CLUSTER_NAME} \
 
 Install Config Sync:
 ```bash
-FIXME
+CS_VERSION=$(curl -s https://api.github.com/repos/GoogleContainerTools/kpt-config-sync/releases/latest | jq .tag_name)
+kubectl apply -f "https://github.com/GoogleContainerTools/kpt-config-sync/releases/download/${CS_VERSION}/config-sync-manifest.yaml"
 ```
 
 (Optional) Install Gatekeeper:
