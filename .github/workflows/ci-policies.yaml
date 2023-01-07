@@ -30,8 +30,8 @@ jobs:
           POLICIES=$(echo policies/*/)
           for policy in $POLICIES;
           do
-              echo "## gator verify for " + $policy
-              ./gator verify $policy/suite.yaml
+            echo "## gator verify for " + $policy
+            ./gator verify ${policy}suite.yaml
           done
   artifact:
     needs: tests
