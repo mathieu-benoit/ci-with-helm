@@ -24,8 +24,8 @@ on:
 env:
   CHART_NAME: my-chart
   IMAGE_TAG: 0.1.0
-  KPT_VERSION: 1.0.0-beta.24
-  NOMOS_VERSION: 1.14.0
+  KPT_VERSION: 1.0.0-beta.29
+  NOMOS_VERSION: 1.14.3
 jobs:
   tests:
     runs-on: ubuntu-22.04
