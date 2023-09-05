@@ -30,7 +30,7 @@ jobs:
   tests:
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: helm lint
         id: lint
         run: |
@@ -145,7 +145,7 @@ jobs:
     if: ${{ github.event_name == 'pull_request' }}
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: install kpt
         if: ${{ always() }}
         run: |
@@ -176,7 +176,7 @@ jobs:
     if: ${{ github.event_name == 'push' }}
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: helm package
         run: |
           helm package $CHART_NAME --version $IMAGE_TAG
